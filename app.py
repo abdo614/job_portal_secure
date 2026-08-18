@@ -371,10 +371,9 @@ def ensure_admin_account():
     admin_password = os.environ.get('ADMIN_PASSWORD', 'Admin@2026!')
     if admin is None:
         # إنشاء حساب جديد فقط عند عدم وجوده
-        if not admin_password:
-            # لا ننشئ كلمة مرور ثابتة — نستخدم كلمة مرور عشوائية قوية
-            admin_password = secrets.token_urlsafe(16)
-            logger.warning("⚠️ ADMIN_PASSWORD غير مضبوط — تم إنشاء كلمة مرور عشوائية للمدير. اضبط ADMIN_PASSWORD في Environment Variables.")
+        if not admin_password or admin_password == 'Admin@2026!':
+            # كلمة مرور عشوائية نظيفة 12 حرفاً (أحرف وأرقام فقط) لتجنب أي تشوه
+            admin_password = "Admin" + secrets.token_hex(4) + "!"
         admin = {
             'id': 'admin_1', 'username': 'admin', 'firstName': 'مدير', 'lastName': 'الموقع',
             'email': 'admin@arabjobs.com', 'phone': '+905317431746',
