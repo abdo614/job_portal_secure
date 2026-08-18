@@ -13,16 +13,14 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-      - key: SMTP_HOST
-        sync: false
-      - key: SMTP_PORT
-        sync: false
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASSWORD
-        sync: false
       - key: MAIL_FROM
         sync: false
+      - key: MAILGUN_API_KEY
+        sync: false
+      - key: MAILGUN_DOMAIN
+        sync: false
+      - key: MAILGUN_BASE_URL
+        value: "https://api.mailgun.net"
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: FLASK_HTTPS

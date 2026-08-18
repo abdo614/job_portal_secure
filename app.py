@@ -81,28 +81,33 @@ def get_mail_settings():
                 "smtp_password": SMTP_PASSWORD, "mail_from": MAIL_FROM}
 
 def send_email(to_email, subject, body, html=None):
+    """Send mail through Mailgun HTTPS API.
+
+    Render Free blocks outbound SMTP ports, so OTP and other email
+    use HTTPS instead of smtplib.
+    """
     if not to_email:
         return False
 
     try:
         import requests
 
-        api_key = os.environ.get("MAILGUN_API_KEY")
-        domain = os.environ.get("MAILGUN_DOMAIN")
-        base_url = os.environ.get("MAILGUN_BASE_URL", "https://api.mailgun.net").rstrip("/")
+        api_key = os.environ.get("MAILGUN_API_KEY", "").strip()
+        domain = os.environ.get("MAILGUN_DOMAIN", "").strip()
+        base_url = os.environ.get(
+            "MAILGUN_BASE_URL", "https://api.mailgun.net"
+        ).rstrip("/")
+        mail_from = os.environ.get("MAIL_FROM", "").strip()
 
-        if not api_key:
-            logger.warning("MAILGUN_API_KEY is not configured; skipping email")
+        if not api_key or not domain:
+            logger.error(
+                "Mailgun configuration missing: "
+                "MAILGUN_API_KEY or MAILGUN_DOMAIN"
+            )
             return False
 
-        if not domain:
-            logger.warning("MAILGUN_DOMAIN is not configured; skipping email")
-            return False
-
-        mail_from = os.environ.get(
-            "MAIL_FROM",
-            f"Mailgun Sandbox <postmaster@{domain}>"
-        )
+        if not mail_from:
+            mail_from = f"Mailgun Sandbox <postmaster@{domain}>"
 
         data = {
             "from": mail_from,
@@ -110,7 +115,6 @@ def send_email(to_email, subject, body, html=None):
             "subject": subject,
             "text": body,
         }
-
         if html:
             data["html"] = html
 
@@ -120,18 +124,10 @@ def send_email(to_email, subject, body, html=None):
             data=data,
             timeout=20,
         )
+        response.raise_for_status()
 
-        if response.ok:
-            logger.info("Email sent successfully via Mailgun to %s", to_email)
-            return True
-
-        logger.error(
-            "Mailgun email failed: status=%s response=%s",
-            response.status_code,
-            response.text[:1000],
-        )
-        return False
-
+        logger.info("Email sent successfully via Mailgun to %s", to_email)
+        return True
     except Exception:
         logger.exception("Mailgun email sending failed")
         return False
