@@ -1,15 +1,7 @@
 """Persistent PostgreSQL backend for the existing encrypted SecureStorage API.
 
-The application currently stores each logical dataset as an encrypted JSON file.
-This backend keeps the same logical collections and Fernet encryption, but stores
-one encrypted payload per collection in PostgreSQL so Render redeploys do not
-remove application data.
-
-It intentionally exposes the small interface used by encryption.py:
-    encrypt_file(filename, data)
-    decrypt_file(filename)
-
-The database URL and encryption key are environment variables only.
+The application stores each logical dataset as an encrypted JSON payload in
+PostgreSQL. Encryption remains Fernet-based using the existing ENCRYPTION_KEY.
 """
 
 from __future__ import annotations
@@ -27,7 +19,7 @@ logger = logging.getLogger(__name__)
 class PostgresEncryptionManager:
     """Drop-in replacement for file-backed EncryptionManager."""
 
-    def __init__(self, key: bytes):
+    def __init__(self, key: bytes, ensure_schema: bool = True):
         self.key = key
         self.cipher = Fernet(key)
         self.database_url = os.environ.get("DATABASE_URL", "").strip()
@@ -38,8 +30,9 @@ class PostgresEncryptionManager:
         except ImportError as exc:
             raise RuntimeError("psycopg is required for PostgreSQL storage") from exc
         self.psycopg = psycopg
-        self._ensure_schema()
-        logger.info("🗄️ PostgreSQL storage enabled")
+        if ensure_schema:
+            self._ensure_schema()
+        logger.info("🗄️ PostgreSQL storage initialized")
 
     def _connect(self):
         return self.psycopg.connect(self.database_url)
@@ -57,6 +50,22 @@ class PostgresEncryptionManager:
                     """
                 )
             conn.commit()
+
+    def schema_exists(self):
+        with self._connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT EXISTS (
+                        SELECT 1 FROM information_schema.tables
+                        WHERE table_schema = 'public' AND table_name = 'secure_store'
+                    )
+                    """
+                )
+                return bool(cur.fetchone()[0])
+
+    def ensure_schema(self):
+        self._ensure_schema()
 
     def encrypt_data(self, data):
         if isinstance(data, (dict, list)):
@@ -104,13 +113,14 @@ class PostgresEncryptionManager:
         try:
             with self._connect() as conn:
                 with conn.cursor() as cur:
+                    if not self.schema_exists():
+                        return None
                     cur.execute(
                         "SELECT payload FROM secure_store WHERE collection = %s",
                         (filename,),
                     )
                     row = cur.fetchone()
             if not row:
-                logger.warning("⚠️ PostgreSQL collection not found: %s", filename)
                 return None
             return self.decrypt_data(row[0])
         except Exception:
@@ -118,6 +128,8 @@ class PostgresEncryptionManager:
             return None
 
     def list_collections(self):
+        if not self.schema_exists():
+            return []
         with self._connect() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT collection, updated_at FROM secure_store ORDER BY collection")
