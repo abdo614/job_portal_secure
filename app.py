@@ -107,13 +107,15 @@ def send_email(to_email, subject, body, html=None):
         return False
 
 app = Flask(__name__)
-# مفتاح الجلسة يجب أن يأتي من Environment Variable فقط في الإنتاج
+# مفتاح الجلسة من Environment Variable في الإنتاج.
+# في حالة عدم توفر المفتاح (نسخة التطوير مثلاً) يولّد النظام مفتاحاً
+# عشوائياً لهذا التشغيل فقط ولا يحفظه. يُنصح بشدة بضبطه في بيئة الإنتاج.
 app.secret_key = os.environ.get('FLASK_SECRET_KEY')
 if not app.secret_key:
-    raise RuntimeError(
-        "FLASK_SECRET_KEY is not set. "
-        "Set it in environment variables before running the app. "
-        "Example: set FLASK_SECRET_KEY=your-secure-random-key-here"
+    app.secret_key = secrets.token_hex(32)
+    logger.warning(
+        "⚠️ FLASK_SECRET_KEY غير مضبوط — تم توليد مفتاح جلسة عشوائي مؤقت. "
+        "اضبط FLASK_SECRET_KEY في Environment Variables لبيئة إنتاج مستقرة."
     )
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_HTTPS', '0') == '1'
