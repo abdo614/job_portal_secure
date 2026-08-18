@@ -107,8 +107,7 @@ class EncryptionManager:
 
     def decrypt_file(self, filename):
         cached = self._get_cached_file(filename)
-        if cached is not None:
-            return cached
+        if cached is not None: return cached
         try:
             encrypted = (DATA_DIR / f'{filename}.enc').read_bytes()
             data = self.decrypt_data(encrypted)
@@ -404,6 +403,18 @@ class SecureStorage:
 
 
 secure_storage = SecureStorage()
+
+# PostgreSQL is opt-in. This keeps the current file backend untouched until
+# the existing data has been migrated and verified. Never enable this flag
+# before the migration has completed successfully.
+if os.environ.get('STORAGE_BACKEND', '').strip().lower() == 'postgres':
+    try:
+        from postgres_storage import PostgresEncryptionManager
+        secure_storage.encryption = PostgresEncryptionManager(secure_storage.encryption.key)
+        logger.info("🗄️ تم تفعيل PostgreSQL كطبقة تخزين دائمة")
+    except Exception:
+        logger.exception("❌ تعذر تفعيل PostgreSQL — سيبقى التخزين الحالي دون تغيير")
+        raise
 
 if __name__ == '__main__':
     print("وحدة التشفير - منصة التوظيف العربية")
