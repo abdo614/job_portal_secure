@@ -7,12 +7,13 @@ services:
     startCommand: python run_production.py
     healthCheckPath: /
     envVars:
-      # PostgreSQL is the production storage backend.
-      # Keep DATABASE_URL as a Render secret; do not commit its value.
+      # Use Render PostgreSQL automatically in production.
       - key: STORAGE_BACKEND
         value: "postgres"
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: job-portal-db
+          property: connectionString
       - key: FLASK_SECRET_KEY
         sync: false
       - key: ENCRYPTION_KEY
