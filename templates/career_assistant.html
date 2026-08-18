@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="{{ site_lang|default('en') }}" dir="{{ site_dir|default('ltr') }}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>المساعد المهني - ArabJobs</title>
+<link rel="stylesheet" href="/static/css/header.css">
+<style>
+body{margin:0;background:#f5f7fb;font-family:Tahoma,Arial,sans-serif;color:#172033}.wrap{max-width:1100px;margin:30px auto;padding:0 18px}.hero,.card{background:#fff;border:1px solid #e5eaf1;border-radius:20px;box-shadow:0 10px 35px #1720330d}.hero{padding:28px;margin-bottom:20px;background:linear-gradient(135deg,#102f45,#1f668e);color:#fff}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}.card{padding:22px}.score{font-size:42px;font-weight:900;color:#1769aa}.muted{color:#6b7788;line-height:1.8}.item{padding:12px;border:1px solid #e8edf3;border-radius:12px;margin:8px 0;background:#fafbfd}.job{font-weight:800}.btn{border:0;border-radius:10px;padding:11px 15px;background:#1769aa;color:#fff;font-weight:800;cursor:pointer}.btn.secondary{background:#eef4f8;color:#1769aa}.pill{display:inline-block;padding:5px 9px;border-radius:20px;background:#eef6ff;color:#1769aa;margin:3px;font-size:12px}.error{color:#b42318}.ok{color:#147a45}
+</style></head><body>{% include 'header.html' %}<div class="wrap">
+<div class="hero"><h1>🤖 المساعد المهني الذكي</h1><p>تحليل محلي لملفك واقتراح الوظائف الأنسب دون إرسال بياناتك الحساسة إلى خدمة خارجية.</p></div>
+<div class="grid"><section class="card"><h2>📄 تقييم ملفك</h2><div id="cvScore" class="score">—</div><div id="cvSuggestions" class="muted">جارٍ التحليل...</div><button class="btn" onclick="loadCV()">تحديث التقييم</button></section>
+<section class="card"><h2>🎯 أفضل الوظائف لك</h2><div id="matches" class="muted">جارٍ البحث...</div></section></div>
+</div><script>
+async function loadCV(){const r=await fetch('/api/ai/cv-review');const d=await r.json();if(!d.success){document.getElementById('cvSuggestions').innerHTML='<span class="error">'+(d.message||'تعذر التحليل')+'</span>';return}document.getElementById('cvScore').textContent=d.score+' / 100';document.getElementById('cvSuggestions').innerHTML=d.suggestions.length?d.suggestions.map(x=>'<div class="item">⚠️ '+x+'</div>').join(''):'<div class="ok">✓ ملفك مكتمل بشكل جيد</div>'}
+async function loadMatches(){const r=await fetch('/api/ai/job-matches');const d=await r.json();const el=document.getElementById('matches');if(!d.success){el.innerHTML='<span class="error">'+(d.message||'تعذر التحليل')+'</span>';return}if(!d.items.length){el.textContent='لا توجد وظائف لتحليلها حالياً.';return}el.innerHTML=d.items.slice(0,8).map(x=>`<div class="item"><div class="job">${escapeHtml(x.job.title||'وظيفة')} — ${x.score}%</div><div class="muted">${escapeHtml(x.job.company||'')} ${escapeHtml(x.job.country||'')} ${escapeHtml(x.job.city||'')}</div><div>${(x.reasons||[]).map(y=>'<span class="pill">✓ '+escapeHtml(y)+'</span>').join('')}</div>${x.missingSkills?.length?'<div class="muted">مهارات/كلمات قد تحتاجها: '+x.missingSkills.map(y=>'<span class="pill">'+escapeHtml(y)+'</span>').join('')+'</div>':''}</div>`).join('')}
+function escapeHtml(v){return String(v).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
+loadCV();loadMatches();
+</script></body></html>

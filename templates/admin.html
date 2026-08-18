@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="{{ site_lang|default('ar') }}" dir="{{ site_dir|default('rtl') }}">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>لوحة التحكم الشاملة</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tajawal,Arial;background:#f4f7fb;color:#172333}
+.sidebar{position:fixed;right:0;top:0;width:260px;height:100vh;background:#102f45;color:#fff;overflow:auto;padding-bottom:30px}
+.brand{padding:22px;border-bottom:1px solid #ffffff20;font-size:21px;font-weight:800}.brand small{display:block;font-size:11px;color:#aabccc;margin-top:5px}
+nav a{display:flex;gap:10px;align-items:center;color:#dce8ef;text-decoration:none;padding:12px 20px;cursor:pointer}
+nav a:hover,nav a.active{background:#1d587d;color:#fff}nav .label{padding:18px 20px 7px;color:#7891a3;font-size:11px}
+.main{margin-right:260px;padding:25px;max-width:1600px}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px}
+h1{margin:0}.btn{border:0;border-radius:9px;padding:10px 15px;cursor:pointer;font-family:inherit;font-weight:700}.primary{background:#1a4a6e;color:#fff}.danger{background:#c62828;color:#fff}.light{background:#fff;border:1px solid #ddd}
+.section{display:none}.section.active{display:block}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:15px}
+.card{background:#fff;border-radius:15px;padding:18px;box-shadow:0 5px 20px #1a2a3a0d}.stat strong{display:block;font-size:30px;color:#1a4a6e}.muted{color:#73808c;font-size:13px}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field input,.field textarea,.field select{font:inherit;padding:10px;border:1px solid #dce2e8;border-radius:9px;background:#fbfcfd}.field textarea{min-height:100px;resize:vertical}
+.table-wrap{overflow:auto;background:#fff;border-radius:15px}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:11px;border-bottom:1px solid #edf0f3;text-align:right;white-space:nowrap}.table th{background:#f8fafc}
+.actions{display:flex;gap:6px}.tag{display:inline-block;background:#edf4f9;border-radius:20px;padding:3px 9px;font-size:12px}
+.toast{position:fixed;left:20px;bottom:20px;background:#102f45;color:#fff;padding:13px 18px;border-radius:10px;display:none;z-index:9999}
+.admin-jobs-table{min-width:1100px}
+.admin-jobs-table th{font-size:12.5px;color:#234;font-weight:800;background:#eef3f8;position:sticky;top:0;z-index:1}
+.admin-jobs-table td{vertical-align:middle;font-size:13.5px}
+.admin-jobs-table tr:hover td{background:#f7fafc}
+.admin-jobs-table .td-title{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-jobs-table .td-email{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right;color:#1a4a6e}
+.admin-jobs-table .td-date{color:#687386}
+.admin-jobs-table .td-count{text-align:center}
+.count-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-weight:800;font-size:13px;white-space:nowrap}
+.count-like{background:#fff0f3;color:#c62828}
+.count-app{background:#eaf4ff;color:#1769aa}
+@media(max-width:900px){
+.admin-jobs-table th:nth-child(4),
+.admin-jobs-table td:nth-child(4),
+.admin-jobs-table th:nth-child(7),
+.admin-jobs-table td:nth-child(7),
+.admin-jobs-table th:nth-child(8),
+.admin-jobs-table td:nth-child(8){display:none}
+.admin-jobs-table{min-width:870px}
+}
+
+
+/* ===== صفحة الفواتير والاشتراكات ===== */
+.invoices-card{width:100%;min-width:0}
+.invoices-card > h2{margin:0 0 8px}
+.invoices-card > .muted{margin:0 0 16px}
+
+/* بطاقات الإعدادات */
+.invoices-settings-card{background:#f8fafc;margin:15px 0;padding:20px;border-radius:15px;border:1px solid #eef2f6}
+.invoices-settings-card h3{font-size:15px;margin:0 0 12px;color:#1a4a6e;display:flex;align-items:center;gap:8px}
+
+/* شبكة أسعار الخدمات */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.pricing-field{background:#fff;border:1px solid #e7edf2;border-radius:12px;padding:14px;transition:border-color .2s}
+.pricing-field:focus-within{border-color:#1a4a6e}
+.pricing-field label{display:block;font-size:12px;color:#73808c;margin-bottom:6px;font-weight:700}
+.pricing-field input{width:100%;font:inherit;padding:10px;border:1px solid #dce2e8;border-radius:9px;background:#fbfcfd;font-weight:700;color:#1a4a6e}
+
+/* أسعار الصرف */
+.live-rates-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0}
+.live-rates-table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;border:1px solid #e7edf2;border-radius:14px;background:#fff;-webkit-overflow-scrolling:touch}
+.live-rates-table{width:100%;table-layout:fixed;font-size:13px;border-collapse:collapse}
+.live-rates-table th,.live-rates-table td{padding:9px 8px;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}
+.live-rates-table th{white-space:nowrap;background:#f8fafc;font-size:12px;color:#234;font-weight:800}
+.live-rates-table tr:hover td{background:#f7fafc}
+.live-rates-table th:nth-child(1){width:35%}.live-rates-table th:nth-child(2){width:20%}.live-rates-table th:nth-child(3){width:20%}.live-rates-table th:nth-child(4){width:25%}
+.rate-value{font-weight:800;direction:ltr;text-align:right;white-space:nowrap}
+
+/* قائمة الفواتير */
+.invoices-list-card{background:#fff;border:1px solid #e7edf2;border-radius:15px;padding:20px;margin-top:15px}
+.invoices-list-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.invoices-list-header h3{font-size:15px;margin:0 0 4px;color:#1a4a6e}
+.invoice-filter{padding:10px 12px;border:1px solid #d7dee7;border-radius:10px;font-family:inherit;font-size:13px;background:#fff;color:#172333}
+
+/* جدول الفواتير */
+.invoice-table-wrap{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;background:#fff;border:1px solid #e7edf2;border-radius:14px;box-shadow:0 3px 12px #1a2a3a08;-webkit-overflow-scrolling:touch}
+.invoice-table{width:100%;table-layout:fixed;font-size:13px;border-collapse:collapse}
+.invoice-table th,.invoice-table td{padding:10px 8px;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}
+.invoice-table th{white-space:nowrap;background:#f8fafc;font-size:12px;color:#234;font-weight:800}
+.invoice-table tr:hover td{background:#f7fafc}
+.invoice-table th:nth-child(1){width:16%}.invoice-table th:nth-child(2){width:15%}.invoice-table th:nth-child(3){width:17%}.invoice-table th:nth-child(4){width:8%}.invoice-table th:nth-child(5){width:7%}.invoice-table th:nth-child(6){width:10%}.invoice-table th:nth-child(7){width:15%}.invoice-table th:nth-child(8){width:12%}
+.invoice-id,.invoice-payment-id,.invoice-user,.invoice-date{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right}
+.invoice-user{direction:ltr}
+.invoice-amount{font-weight:800;white-space:nowrap}
+.invoice-status{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+.invoice-paid{background:#e8f7ee;color:#16733b}.invoice-pending{background:#fff5d9;color:#8a6100}.invoice-refunded{background:#fdeaea;color:#a12626}.invoice-other{background:#edf1f5;color:#56616d}
+.invoice-view-btn{padding:6px 9px;font-size:12px;white-space:nowrap}
+
+@media(max-width:850px){
+ .main{padding:18px}
+ .invoice-table th,.invoice-table td{padding:8px 7px;font-size:12px}
+}
+</style><style>.site-logo-white,.logo h1,.logo span{color:#fff!important;text-decoration:none}</style></head>
+<body data-user-role="{{ current_user.role if current_user else (user.role if user else "") }}">
+<div id="v8-admin-search" style="max-width:720px;width:calc(100% - 32px);margin:16px auto;position:relative;display:flex;gap:8px;align-items:center">
+<input id="adminGlobalSearch" type="search" placeholder="ابحث عن قسم أو إعداد..." autocomplete="off" style="width:100%;max-width:560px;flex:1;padding:11px 14px;border:1px solid #d7dee7;border-radius:11px;font-size:15px;box-sizing:border-box">
+<button id="adminGlobalSearchBtn" type="button" class="btn primary" style="white-space:nowrap;padding:11px 16px">🔎 بحث</button>
+<div id="adminSearchResults" style="display:none;position:absolute;top:48px;right:0;width:min(560px,100%);background:#fff;border:1px solid #ddd;border-radius:11px;padding:5px;z-index:9999;box-shadow:0 15px 35px #0002"></div>
+</div><aside class="sidebar">
+<div class="brand"><i class="fa-solid fa-shield-halved"></i> <span>إدارة الموقع</span><small>CMS + وظائف + مستخدمون</small></div>
+<nav>
+<div class="label">الرئيسية</div>
+<a class="active" href="javascript:void(0)" data-section="dashboard"><i class="fa-solid fa-chart-pie"></i><span>لوحة الإحصائيات</span></a>
+<a href="javascript:void(0)" data-section="analytics"><i class="fa-solid fa-chart-line"></i><span>التحليلات والذكاء التشغيلي</span></a>
+<a href="javascript:void(0)" data-section="jobs"><i class="fa-solid fa-briefcase"></i><span>الوظائف</span></a>
+<a href="javascript:void(0)" data-section="applications"><i class="fa-solid fa-file-circle-check"></i><span>طلبات التوظيف</span></a>
+<a href="javascript:void(0)" data-section="users"><i class="fa-solid fa-users"></i><span>المستخدمون</span></a>
+<div class="label">المحتوى</div>
+<a href="javascript:void(0)" data-section="news"><i class="fa-solid fa-newspaper"></i><span>الأخبار</span></a>
+<a href="javascript:void(0)" data-section="about"><i class="fa-solid fa-circle-info"></i><span>من نحن</span></a>
+<a href="javascript:void(0)" data-section="services"><i class="fa-solid fa-concierge-bell"></i><span>الخدمات</span></a>
+<a href="javascript:void(0)" data-section="faq"><i class="fa-solid fa-circle-question"></i><span>الأسئلة الشائعة</span></a>
+<a href="javascript:void(0)" data-section="slider"><i class="fa-solid fa-images"></i><span>السلايدر</span></a>
+<a href="javascript:void(0)" data-section="testimonials"><i class="fa-solid fa-star"></i><span>آراء العملاء</span></a>
+<a href="javascript:void(0)" data-section="comments"><i class="fa-solid fa-comments"></i><span>التعليقات</span></a>
+<a href="javascript:void(0)" data-section="gallery"><i class="fa-solid fa-photo-film"></i><span>المعرض</span></a>
+<a href="javascript:void(0)" data-section="portfolio"><i class="fa-solid fa-layer-group"></i><span>أعمالنا</span></a>
+<a href="javascript:void(0)" data-section="team"><i class="fa-solid fa-people-group"></i><span>فريق العمل</span></a>
+<a href="javascript:void(0)" data-section="partners"><i class="fa-solid fa-handshake"></i><span>الشركاء</span></a>
+<a href="javascript:void(0)" data-section="whychooseus"><i class="fa-solid fa-check-double"></i><span>لماذا نحن</span></a>
+<div class="label">الإعدادات</div>
+<a href="javascript:void(0)" data-section="mail"><i class="fa-solid fa-envelope"></i><span>البريد الإلكتروني</span></a>
+<a href="javascript:void(0)" data-section="site_contact"><i class="fa-solid fa-cog"></i><span>إعدادات الاتصال والموقع</span></a>
+<a href="javascript:void(0)" data-section="menu"><i class="fa-solid fa-bars"></i><span>القائمة</span></a>
+<a href="javascript:void(0)" data-section="social"><i class="fa-solid fa-share-nodes"></i><span>التواصل الاجتماعي</span></a>
+<a href="javascript:void(0)" data-section="languages"><i class="fa-solid fa-language"></i><span>اللغات</span></a>
+<a href="javascript:void(0)" data-section="pages"><i class="fa-solid fa-file-lines"></i><span>الصفحات</span></a>
+<div class="label">النظام</div>
+<a onclick="showBackups()"><i class="fa-solid fa-database"></i><span>نسخة احتياطية</span></a>
+<a href="javascript:void(0)" data-section="invoices"><i class="fa-solid fa-file-invoice-dollar"></i><span>💳 الفواتير والمدفوعات</span></a>
+<a href="javascript:void(0)" data-section="trust"><i class="fa-solid fa-shield-halved"></i><span>الثقة والبلاغات</span></a>
+<a href="javascript:void(0)" data-section="error_log"><i class="fa-solid fa-triangle-exclamation"></i><span>📋 سجل الأخطاء</span></a>
+<a href="/logout"><i class="fa-solid fa-right-from-bracket"></i><span>تسجيل الخروج</span></a>
+</nav></aside>
+
+<main class="main">
+<div class="top"><div><h1 id="sectionTitle">لوحة الإحصائيات</h1><div class="muted">تحكم كامل بالمحتوى والوظائف والمستخدمين وطلبات التوظيف.</div></div><button class="btn light" onclick="location.href='/'"><i class="fa-solid fa-globe"></i> الموقع</button></div>
+
+<section id="dashboard" class="section active">
+<div class="grid" id="stats"></div>
+<div class="card" style="margin-top:18px"><h3>حالة النظام</h3><p class="muted">الإحصائيات التالية تُحسب من البيانات الفعلية وليست أرقاماً تجريبية.</p></div>
+</section>
+
+<section id="analytics" class="section">
+<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><h2>📊 التحليلات والذكاء التشغيلي</h2><p class="muted">قراءة تشغيلية من بيانات المنصة الفعلية، بدون أرقام تجريبية. لا تُعرض البيانات الشخصية الحساسة هنا.</p></div><button class="btn primary" onclick="loadAnalytics()">تحديث التحليلات</button></div></div>
+<div class="grid" id="analyticsSummary" style="margin-top:15px"></div>
+<div class="grid" style="margin-top:15px">
+<div class="card"><h3>📈 آخر 14 يومًا</h3><div class="table-wrap"><table class="table"><thead><tr><th>اليوم</th><th>وظائف</th><th>طلبات</th><th>مدفوعات ناجحة</th><th>أخطاء</th></tr></thead><tbody id="analyticsDaily"></tbody></table></div></div>
+<div class="card"><h3>🌍 أكثر الدول في الوظائف</h3><div id="analyticsCountries"></div><h3 style="margin-top:22px">📋 حالات الطلبات</h3><div id="analyticsApplications"></div></div>
+</div>
+<div class="card" style="margin-top:15px"><h3>💳 مصادر المدفوعات</h3><div id="analyticsPaymentSources"></div></div>
+<div class="card" style="margin-top:15px"><h3>🚨 مؤشرات تحتاج مراجعة</h3><p class="muted">هذه مؤشرات تنبيهية وليست اتهامًا بالاحتيال.</p><div class="table-wrap"><table class="table"><thead><tr><th>النوع</th><th>معرف الدفع</th><th>المستخدم</th><th>المحاولات</th><th>التاريخ</th></tr></thead><tbody id="analyticsSuspicious"></tbody></table></div></div>
+<div id="analyticsGenerated" class="muted" style="margin-top:10px"></div>
+</section>
+
+<section id="trust" class="section"><div class="card"><h2>🛡️ الثقة والبلاغات</h2><div style="display:flex;gap:10px;margin-bottom:15px"><button class="btn light" onclick="loadTrustAdmin()">تحديث</button></div><h3>طلبات توثيق الشركات</h3><div class="table-wrap"><table class="table"><thead><tr><th>الشركة</th><th>الحالة</th><th>تاريخ الطلب</th><th>الإجراء</th></tr></thead><tbody id="trustCompanies"><tr><td colspan="4">جاري التحميل...</td></tr></tbody></table></div><h3 style="margin-top:25px">بلاغات الوظائف</h3><div class="table-wrap"><table class="table"><thead><tr><th>الوظيفة</th><th>السبب</th><th>المبلغ</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="trustReports"><tr><td colspan="5">جاري التحميل...</td></tr></tbody></table></div></div></section>\n\n<section id="jobs" class="section">
+<div class="card"><h2>إدارة الوظائف</h2><form class="form" id="jobForm">
+<input type="hidden" id="jobId"><div class="field"><label>المسمى الوظيفي</label><input id="jobTitle" required></div>
+<div class="field"><label>الشركة</label><input id="jobCompany" required></div><div class="field"><label>الدولة</label><input id="jobCountry"></div>
+<div class="field"><label>المدينة</label><input id="jobCity"></div><div class="field"><label>التصنيف</label><input id="jobCategory"></div>
+<div class="field"><label>الراتب</label><input id="jobSalary"></div><div><button class="btn primary">حفظ الوظيفة</button><button type="button" class="btn light" onclick="clearJob()">جديد</button></div></form></div>
+<div class="table-wrap" style="margin-top:15px"><table class="table admin-jobs-table"><thead><tr><th>ID</th><th>الوظيفة</th><th>اسم الشركة</th><th>صاحب الإعلان</th><th>البريد الإلكتروني</th><th>المكان</th><th>التصنيف</th><th>تاريخ الإنشاء</th><th>الإعجابات ❤️</th><th>المتقدمون 👥</th><th>الإجراءات</th></tr></thead><tbody id="jobsTable"></tbody></table></div></section>
+
+<section id="applications" class="section">
+<div class="card"><h2>طلبات التوظيف</h2><p class="muted">إدارة الطلبات المقدمة على الوظائف وتحديث حالتها.</p></div>
+<div class="table-wrap" style="margin-top:15px"><table class="table"><thead><tr><th>المتقدم</th><th>البريد</th><th>الوظيفة</th><th>الشركة</th><th>التاريخ</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="appsTable"></tbody></table></div>
+</section>
+
+<section id="users" class="section">
+<div class="card"><h2>المستخدمون</h2><p class="muted">عرض وإدارة حسابات المستخدمين وحالاتهم وصلاحياتهم.</p></div>
+<div class="table-wrap" style="margin-top:15px"><table class="table"><thead><tr><th>الاسم</th><th>المعرف</th><th>البريد</th><th>الدولة</th><th>التخصص</th><th>الرصيد</th><th>الدور</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="usersTable"></tbody></table></div>
+</section>
+<section id="news" class="section"><div class="card"><h2>الأخبار</h2><form class="form" id="newsForm"><input type="hidden" id="newsId"><div class="field"><label>عنوان الخبر</label><input id="newsTitle" required></div><div class="field"><label>التصنيف</label><input id="newsCategory"></div><div class="field"><label>صورة الخبر الرئيسية</label><input type="file" id="newsImageInput" accept="image/png,image/jpeg,image/gif,image/webp"><div id="newsImagePreview" style="margin-top:8px"></div></div><div class="field"><label>حالة الخبر</label><select id="newsStatus"><option>منشور</option><option>مسودة</option></select></div><div class="field full"><label>محتوى الخبر</label><textarea id="newsContent"></textarea></div><div><button class="btn primary">حفظ</button><button type="button" class="btn light" onclick="clearNews()">جديد</button></div></form></div><div class="table-wrap" style="margin-top:15px"><table class="table"><thead><tr><th>الصورة</th><th>العنوان</th><th>التصنيف</th><th>التاريخ</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="newsTable"></tbody></table></div></section>
+
+<section id="mail" class="section"><div class="card"><h2>إعدادات البريد الإلكتروني</h2><p class="muted">يمكنك تعديل بيانات البريد الإلكتروني من هنا في أي وقت.</p><form id="mailForm" class="form"><div class="field"><label>SMTP Host</label><input id="mailHost"></div><div class="field"><label>SMTP Port</label><input id="mailPort" type="number"></div><div class="field"><label>البريد الإلكتروني</label><input id="mailUser" type="email"></div><div class="field"><label>كلمة مرور التطبيق</label><input id="mailPass" type="password" placeholder="اتركها فارغة للحفاظ على الحالية"></div><div class="field"><label>البريد المرسل منه</label><input id="mailFrom" type="email"></div><div style="grid-column:1/-1"><button class="btn primary">حفظ إعدادات البريد</button></div></form><hr><div class="field"><label>بريد استقبال رسالة الاختبار</label><input id="mailTestTo" type="email" value="ABDOWAZZAN2@gmail.com"></div><button type="button" class="btn light" id="mailTestBtn">إرسال رسالة اختبار</button><div id="mailTestResult" class="muted" style="margin-top:10px"></div></div></section>
+
+<section id="site_contact" class="section"><div class="card"><h2>إعدادات الاتصال والموقع</h2><p class="muted">حفظ تفاصيل الموقع العامة ومعلومات صفحة الاتصال في مكان واحد.</p><form id="siteContactForm" class="form"><div class="field full"><h3 style="margin:0 0 10px">إعدادات الموقع العامة</h3></div><div class="field"><label>اسم الموقع</label><input id="site_name"></div><div class="field"><label>وصف الموقع</label><input id="site_description"></div><div class="field"><label>النص في الشريط العلوي</label><input id="top_bar_text"></div><div class="field"><label>عنوان البطل</label><input id="hero_title"></div><div class="field"><label>النص الفرعي للبطل</label><input id="hero_subtitle"></div><div class="field full"><label>نص التذييل</label><textarea id="footer_text"></textarea></div><div class="field"><label>البريد الإلكتروني العام</label><input id="contact_email" type="email"></div><div class="field"><label>الهاتف العام</label><input id="contact_phone"></div><div class="field"><label>العنوان</label><input id="address"></div><div class="field"><label>ساعات العمل</label><input id="working_hours"></div>
+<div class="field full"><h3 style="margin:20px 0 10px">محتوى صفحة الاتصال</h3></div><div class="field"><label>عنوان الصفحة</label><input id="contact_title"></div><div class="field"><label>عنوان فرعي</label><input id="contact_subtitle"></div><div class="field full"><label>المحتوى</label><textarea id="contact_content"></textarea></div><div class="field"><label>عنوان نموذج الاتصال</label><input id="contact_form_title"></div><div class="field"><label>نص زر الإرسال</label><input id="contact_submit_text"></div><div class="field full"><label>نص حقوق النشر</label><textarea id="contact_copyright"></textarea></div><div style="grid-column:1/-1"><button class="btn primary">حفظ إعدادات الاتصال والموقع</button></div></form></div></section>
+
+<section id="about" class="section"><div class="card"><h2>من نحن</h2><form id="aboutForm" class="form"><div class="field"><label>العنوان</label><input id="about_title"></div><div class="field"><label>العنوان الفرعي</label><input id="about_subtitle"></div><div class="field full"><label>المحتوى</label><textarea id="about_content"></textarea></div><div class="field"><label>الرسالة</label><textarea id="about_mission"></textarea></div><div class="field"><label>الرؤية</label><textarea id="about_vision"></textarea></div><button class="btn primary">حفظ</button></form></div></section>
+
+<section id="slider" class="section"><div class="card"><h2>السلايدر</h2><p class="muted" style="margin-bottom:15px">يُعرض السلايدر في الواجهة الأمامية أعلى الصفحة الرئيسية (/). يمكنك إضافة شرائح جديدة أو تعديل أو حذف أو تفعيل/تعطيل الشرائح الموجودة.</p><form id="sliderForm" class="form"><input type="hidden" id="slideId"><div class="field"><label>العنوان</label><input id="slideTitle" placeholder="مثال: ابحث عن وظيفة أحلامك"></div><div class="field"><label>الوصف</label><input id="slideSubtitle" placeholder="وصف مختصر للشريحة"></div><div class="field"><label>رابط الصورة</label><input id="slideImage" placeholder="https://example.com/image.jpg"></div><div class="field"><label>الرابط</label><input id="slideLink" value="/jobs"></div><div class="field"><label><input type="checkbox" id="slideEnabled" checked style="width:auto;margin-left:8px"> مفعَّل</label></div><button class="btn primary" id="sliderSubmitBtn">إضافة</button> <button type="button" class="btn light" id="sliderCancelBtn" style="display:none" onclick="cancelEditSlider()">إلغاء التعديل</button></form></div><div class="table-wrap" style="margin-top:15px"><table class="table"><thead><tr><th>العنوان</th><th>الصورة</th><th>الرابط</th><th>الحالة</th><th></th></tr></thead><tbody id="sliderTable"></tbody></table></div></section>
+
+<section id="testimonials" class="section"><div class="card"><h2>آراء العملاء</h2><form id="testimonialForm" class="form"><input type="hidden" id="testId"><div class="field"><label>الاسم</label><input id="testName"></div><div class="field"><label>المهنة</label><input id="testPosition"></div><div class="field"><label>التقييم</label><input id="testRating" type="number" min="1" max="5" value="5"></div><div class="field full"><label>التعليق</label><textarea id="testComment"></textarea></div><button class="btn primary">حفظ</button></form></div><div id="testList" class="grid" style="margin-top:15px"></div></section>
+
+<div id="cmsSections"></div>
+
+<section id="error_log" class="section">
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+<div>
+<h2>📋 سجل الأخطاء والعمليات</h2>
+<p class="muted" style="margin:0">سجل مستقل للموقع الرسمي وبوت Telegram. يتم تسجيل الأخطاء والعمليات المهمة دون كلمات مرور أو رموز سرية.</p>
+</div>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><label style="display:flex;align-items:center;gap:8px;font-weight:700"><input type="checkbox" id="errorLogEnabled" style="width:auto"> تشغيل سجل الأخطاء والعمليات</label><span id="errorLogStatus" class="tag">...</span><button class="btn danger" onclick="clearErrorLog()">🗑 حذف سجل التبويب</button></div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;border-top:1px solid #edf0f3;padding-top:15px">
+<button type="button" class="btn primary" id="errorTabOfficial" onclick="switchErrorLogTab('official')">🌐 الموقع الرسمي</button>
+<button type="button" class="btn light" id="errorTabTelegram" onclick="switchErrorLogTab('telegram')">🤖 بوت Telegram</button>
+</div>
+</div>
+<div id="errorLogMsg" class="muted" style="margin:12px 0"></div>
+<div class="table-wrap" style="margin-top:15px">
+<table class="table">
+<thead><tr><th>#</th><th>العملية / الخطأ</th><th>النوع</th><th>التفاصيل</th><th>المستخدم</th><th>الدور</th><th>التاريخ</th><th>تفاصيل تقنية</th></tr></thead>
+<tbody id="errorLogTable"></tbody>
+</table>
+</div>
+</section>
+
+
+<section id="invoices" class="section">
+  <div class="card">
+    <h2>💳 الفواتير والمدفوعات</h2>
+    <p class="muted">إدارة أسعار الخدمات ومتابعة الفواتير المرتبطة بعمليات الدفع وفتح بيانات المتقدمين.</p>
+
+    <div class="card" style="margin-top:16px">
+      <h3>⚙️ أسعار الخدمات الأساسية (USD)</h3>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:14px;margin-top:12px">
+        <div>
+          <label for="price_job_posting">نشر الوظيفة بالدولار</label>
+          <input id="price_job_posting" type="number" min="0" step="0.01" value="5">
+        </div>
+        <div>
+          <label for="price_application">التقديم على الوظيفة بالدولار</label>
+          <input id="price_application" type="number" min="0" step="0.01" value="5">
+        </div>
+        <div>
+          <label for="price_contact_unlock">فتح بيانات التواصل بالدولار</label>
+          <input id="price_contact_unlock" type="number" min="0" step="0.01" value="5">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn primary" id="savePricingBtn" type="button">💾 حفظ أسعار الخدمات</button>
+        <span id="pricingSaveMsg" class="muted"></span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <h3 style="margin:0">🌍 أسعار الصرف المباشرة</h3>
+          <div id="ratesUpdatedText" class="muted" style="margin-top:5px">جاري تحميل أسعار الصرف...</div>
+        </div>
+        <button class="btn light" id="refreshRatesBtn" type="button">🔄 تحديث أسعار الصرف</button>
+      </div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table class="table live-rates-table">
+          <thead>
+            <tr>
+              <th>العملة / الدولة</th>
+              <th>سعر الصرف مقابل USD</th>
+              <th>المصدر</th>
+              <th>آخر تحديث</th>
+            </tr>
+          </thead>
+          <tbody id="exchangeRatesTable">
+            <tr><td colspan="4" style="text-align:center">جاري تحميل أسعار الصرف...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <h3 style="margin:0">🧾 الفواتير والمدفوعات</h3>
+          <div class="muted" style="margin-top:5px">تظهر هنا الفواتير التي تم إنشاؤها من عمليات الدفع.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <select id="invoiceStatusFilter" style="padding:11px;border:1px solid #d7dee7;border-radius:10px">
+            <option value="all">كل الحالات</option>
+            <option value="paid">مدفوعة</option>
+            <option value="pending">معلّقة</option>
+            <option value="refunded">مستردة</option>
+          </select>
+          <button class="btn primary" id="reloadInvoices" type="button">🔄 تحديث القائمة</button>
+        </div>
+      </div>
+      <div id="invoiceMsg" class="muted" style="margin:12px 0"></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>رقم الفاتورة</th>
+              <th>paymentId</th>
+              <th>صاحب العمل</th>
+              <th>المبلغ</th>
+              <th>العملة</th>
+              <th>الحالة</th>
+              <th>التاريخ</th>
+              <th>الإجراء</th>
+            </tr>
+          </thead>
+          <tbody id="invoicesTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+</main><div id="toast" class="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&','<':'<','>':'>','"':'"',"'":'&#039;'}[m]));
+async function api(url,opt={}){let r=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json',...(opt.headers||{})},...opt});if(r.status===401){location.href='/admin';return null}return r.json()}
+function toast(m){$('toast').textContent=m;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2500)}
+const sectionNames={trust:'الثقة والبلاغات',dashboard:'لوحة الإحصائيات',analytics:'التحليلات والذكاء التشغيلي',jobs:'الوظائف',applications:'طلبات التوظيف',users:'المستخدمون',news:'الأخبار',about:'من نحن',mail:'البريد الإلكتروني',site_contact:'إعدادات الاتصال والموقع',slider:'السلايدر',testimonials:'آراء العملاء',services:'الخدمات',faq:'الأسئلة الشائعة',gallery:'معرض الصور',portfolio:'أعمالنا',team:'فريق العمل',partners:'الشركاء',whychooseus:'لماذا نحن',comments:'التعليقات',menu:'القائمة',social:'وسائل التواصل',languages:'اللغات',pages:'الصفحات',error_log:'سجل الأخطاء',invoices:'💳 الفواتير والمدفوعات'};
+document.querySelectorAll('nav a[data-section]').forEach(a=>{a.addEventListener('click',e=>{e.preventDefault();showSection(a.dataset.section)})});
+function showSection(id){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));let el=$(id);if(!el){el=$('cms_'+id)}if(el)el.classList.add('active');document.querySelectorAll('nav a').forEach(x=>x.classList.toggle('active',x.dataset.section===id));$('sectionTitle').textContent=sectionNames[id]||id;if(id==='dashboard')loadStats();if(id==='analytics')loadAnalytics();if(id==='jobs')loadJobs();if(id==='applications')loadApps();if(id==='users')loadUsers();if(id==='trust')loadTrustAdmin();if(id==='invoices'){loadPricingSettings();loadInvoices();}if(id==='news')loadNews();if(id==='mail')loadMail();if(id==='site_contact')loadSiteContactSettings();if(id==='about')loadAbout();if(id==='slider')loadSlider();if(id==='testimonials')loadTestimonials();if(id==='error_log')loadErrorLog();if(['services','faq','gallery','portfolio','team','partners','whychooseus','comments','menu','social','languages','pages'].includes(id))loadCMS(id)}
+let errorLogSource='official';
+function switchErrorLogTab(source){errorLogSource=source==='telegram'?'telegram':'official';const active='background:#1a4a6e;color:#fff';const inactive='background:#fff;color:#172333;border:1px solid #ddd';$('errorTabOfficial').style.cssText=errorLogSource==='official'?active:inactive;$('errorTabTelegram').style.cssText=errorLogSource==='telegram'?active:inactive;loadErrorLogData();}
+async function loadErrorLog(){let s=await api('/api/admin/error-log/settings');if(s?.success){$('errorLogEnabled').checked=!!s.enabled;$('errorLogStatus').textContent=s.enabled?'السجل يعمل':'السجل متوقف';$('errorLogStatus').style.cssText=s.enabled?'background:#e8f7ee;color:#18794e':'background:#fdecec;color:#b42318';}switchErrorLogTab(errorLogSource);return;}
+async function loadErrorLogData(){let d=await api('/api/admin/error-log?source='+encodeURIComponent(errorLogSource));if(!d?.success){$('errorLogMsg').textContent=d?.message||'تعذر تحميل السجل';return}const entries=d.entries||[];const label=errorLogSource==='telegram'?'بوت Telegram':'الموقع الرسمي';$('errorLogMsg').textContent=entries.length?`تبويب ${label} — عدد السجلات: ${entries.length}`:`لا توجد سجلات في ${label} حاليًا.`;$('errorLogTable').innerHTML=entries.length?entries.map((e,i)=>`<tr><td>${i+1}</td><td><strong>${esc(e.message||'—')}</strong></td><td><span class="badge">${esc(e.type||'error')}</span></td><td>${esc(e.cause||'—')}</td><td>${esc(e.actor_id||'—')}</td><td>${esc(e.actor_role||'—')}</td><td style="white-space:nowrap">${esc(e.date||'—')}</td><td>${e.traceback?`<button class="btn light" onclick='showTrace(${JSON.stringify(e)})'>عرض</button>`:'—'}</td></tr>`).join(''):'<tr><td colspan="8" style="text-align:center;color:#73808c">لا توجد سجلات.</td></tr>'}
+$('errorLogEnabled').onchange=async function(){let enabled=this.checked;let d=await api('/api/admin/error-log/settings',{method:'PUT',body:JSON.stringify({enabled})});if(d?.success){$('errorLogStatus').textContent=enabled?'السجل يعمل':'السجل متوقف';$('errorLogStatus').style.cssText=enabled?'background:#e8f7ee;color:#18794e':'background:#fdecec;color:#b42318';toast(enabled?'تم تشغيل سجل الأخطاء والعمليات':'تم إيقاف سجل الأخطاء والعمليات')}else{this.checked=!enabled;toast(d?.message||'تعذر تغيير حالة السجل')}};
+function showTrace(e){const m=document.createElement('div');m.style.cssText='position:fixed;inset:0;background:#0008;z-index:99999;display:grid;place-items:center;padding:20px';m.innerHTML=`<div style="background:#fff;width:min(760px,96%);max-height:90vh;overflow:auto;border-radius:18px;padding:24px"><div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">تفاصيل تقنية</h2><button class="btn light" onclick="this.closest('div').remove()">إغلاق</button></div><div style="margin-top:15px"><h3>${esc(e.message||'')}</h3><p class="muted">${esc(e.cause||'')}</p><p class="muted">${esc(e.date||'')}</p><pre style="background:#f5f7fa;padding:15px;border-radius:10px;overflow:auto;white-space:pre-wrap;direction:ltr;text-align:left;font-size:12px">${esc(e.traceback||'')}</pre></div></div>`;document.body.appendChild(m);}
+async function clearErrorLog(){if(!confirm('هل تريد حذف سجل الأخطاء بالكامل؟'))return;const d=await api('/api/admin/error-log?source='+encodeURIComponent(errorLogSource),{method:'DELETE'});if(d?.success){toast('تم حذف سجل الأخطاء');loadErrorLog();}else{toast(d?.message||'تعذر حذف سجل الأخطاء');}}
+async function loadTrustAdmin(){const c=await api('/api/admin/trust/company-verifications');const r=await api('/api/admin/trust/reports');if(c?.success)$('trustCompanies').innerHTML=(c.items||[]).map(x=>`<tr><td>${esc(x.companyName||x.employerId)}</td><td>${esc(x.status)}</td><td>${esc(x.createdAt||'')}</td><td>${x.status==='pending'?`<button class="btn primary" onclick="reviewTrust('${esc(x.employerId)}','verified')">توثيق</button> <button class="btn danger" onclick="reviewTrust('${esc(x.employerId)}','rejected')">رفض</button>`:'—'}</td></tr>`).join('')||'<tr><td colspan="4">لا توجد طلبات.</td></tr>';if(r?.success)$('trustReports').innerHTML=(r.items||[]).map(x=>`<tr><td>${esc(x.jobId)}</td><td>${esc(x.reason)}</td><td>${esc(x.reporterId)}</td><td>${esc(x.status)}</td><td>${x.status!=='resolved'&&x.status!=='dismissed'?`<button class="btn primary" onclick="reviewReport('${esc(x.id)}','resolved')">حل</button> <button class="btn light" onclick="reviewReport('${esc(x.id)}','dismissed')">إغلاق</button>`:'—'}</td></tr>`).join('')||'<tr><td colspan="5">لا توجد بلاغات.</td></tr>';}
+async function reviewTrust(id,status){const d=await api('/api/admin/trust/company-verifications',{method:'PUT',body:JSON.stringify({employerId:id,status})});toast(d?.message||'تم');loadTrustAdmin();}
+async function reviewReport(id,status){const d=await api('/api/admin/trust/reports',{method:'PUT',body:JSON.stringify({id,status})});toast(d?.message||'تم');loadTrustAdmin();}
+async function loadAnalytics(){const d=await api('/api/admin/analytics');if(!d?.success)return;const s=d.summary||{};const cards={
+ jobs:['الوظائف',s.jobs],publishedJobs:['المنشورة',s.publishedJobs],users:['المستخدمون',s.users],employers:['أصحاب العمل',s.employers],jobSeekers:['الباحثون',s.jobSeekers],applications:['طلبات التوظيف',s.applications],revenueUsd:['إيرادات مدفوعة (USD)',s.revenueUsd],contactUnlockPayments:['عمليات فتح التواصل المدفوعة',s.contactUnlockPayments],paidPayments:['مدفوعات ناجحة',s.paidPayments],failedPayments:['مدفوعات فاشلة',s.failedPayments],officialErrors:['أخطاء الموقع',s.officialErrors],telegramErrors:['أخطاء Telegram',s.telegramErrors],suspiciousSignals:['مؤشرات للمراجعة',s.suspiciousSignals]};$('analyticsSummary').innerHTML=Object.values(cards).map(x=>`<div class="card stat"><div class="muted">${x[0]}</div><strong>${esc(x[1]??0)}</strong></div>`).join('');$('analyticsDaily').innerHTML=(d.daily||[]).map(x=>`<tr><td>${esc(x.date)}</td><td>${x.jobs}</td><td>${x.applications}</td><td>${x.payments}</td><td>${x.errors}</td></tr>`).join('')||'<tr><td colspan="5">لا توجد بيانات زمنية.</td></tr>';$('analyticsCountries').innerHTML=(d.topCountries||[]).map(x=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #edf0f3"><span>${esc(x.name)}</span><strong>${x.count}</strong></div>`).join('')||'لا توجد بيانات';$('analyticsApplications').innerHTML=Object.entries(d.applicationStatuses||{}).map(([k,v])=>`<span class="badge" style="display:inline-block;margin:4px">${esc(k)}: ${v}</span>`).join('')||'لا توجد طلبات';$('analyticsPaymentSources').innerHTML=Object.entries(d.paymentSources||{}).map(([k,v])=>`<span class="badge" style="display:inline-block;margin:4px">${esc(k)}: ${v}</span>`).join('')||'لا توجد مدفوعات';$('analyticsSuspicious').innerHTML=(d.suspicious||[]).map(x=>`<tr><td>${esc(x.type)}</td><td>${esc(x.paymentId||'—')}</td><td>${esc(x.userId||'—')}</td><td>${esc(x.attempts||'—')}</td><td>${esc(x.date||'—')}</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center">لا توجد مؤشرات حالية.</td></tr>';$('analyticsGenerated').textContent='آخر تحديث: '+(d.generatedAt||'—')}
+async function loadStats(){let d=await api('/api/stats');if(!d)return;$('stats').innerHTML=Object.entries({total_jobs:'الوظائف',total_users:'المستخدمون',total_applications:'طلبات التوظيف',total_companies:'الشركات',total_countries:'الدول',total_testimonials:'الآراء'}).map(([k,v])=>`<div class="card stat"><div class="muted">${v}</div><strong>${d[k]??0}</strong></div>`).join('')}
+async function loadJobs(){let d=await api('/api/admin/jobs');if(!d)return;$('jobsTable').innerHTML=d.map(j=>{
+ const loc=[j.country,j.city].filter(Boolean).join(' / ')||'—';
+ const owner=j.ownerName||'—';
+ const email=j.ownerEmail||'—';
+ const posted=j.posted||'—';
+ const likes=Number(j.likesCount)||0;
+ const applicants=Number(j.applicantsCount)||0;
+ return `<tr>
+  <td>${esc(j.id)}</td>
+  <td class="td-title" title="${esc(j.title)}">${esc(j.title)||'—'}</td>
+  <td class="td-title" title="${esc(j.company)}">${esc(j.company)||'—'}</td>
+  <td>${esc(owner)}</td>
+  <td class="td-email" title="${esc(email)}">${esc(email)}</td>
+  <td>${esc(loc)}</td>
+  <td>${esc(j.category)||'—'}</td>
+  <td class="td-date">${esc(posted)}</td>
+  <td class="td-count"><span class="count-badge count-like">❤️ ${likes}</span></td>
+  <td class="td-count"><span class="count-badge count-app">👥 ${applicants}</span></td>
+  <td class="actions"><button class="btn light" onclick='editJob(${JSON.stringify(j)})'>تعديل</button><button class="btn danger" onclick="deleteJob(${j.id})">حذف</button></td>
+ </tr>`}).join('')}
+function editJob(j){$('jobId').value=j.id;$('jobTitle').value=j.title||'';$('jobCompany').value=j.company||'';$('jobCountry').value=j.country||'';$('jobCity').value=j.city||'';$('jobCategory').value=j.category||'';$('jobSalary').value=j.salary||''}
+function clearJob(){$('jobForm').reset();$('jobId').value=''}
+$('jobForm').onsubmit=async e=>{e.preventDefault();let data={action:$('jobId').value?'update':'add',id:$('jobId').value?Number($('jobId').value):undefined,title:$('jobTitle').value,company:$('jobCompany').value,country:$('jobCountry').value,city:$('jobCity').value,category:$('jobCategory').value,salary:$('jobSalary').value};let d=await api('/api/jobs/manage',{method:'POST',body:JSON.stringify(data)});if(d?.success){toast(d.message);clearJob();loadJobs();loadStats()}}
+async function deleteJob(id){if(!confirm('حذف الوظيفة؟'))return;let d=await api('/api/jobs/manage',{method:'POST',body:JSON.stringify({action:'delete',id})});if(d?.success){toast('تم الحذف');loadJobs();loadStats()}}
+async function loadApps(){let d=await api('/api/admin/applications');$('appsTable').innerHTML=(d||[]).map(a=>`<tr><td>${esc(a.userName)}</td><td>${esc(a.userEmail)}</td><td>${esc(a.jobTitle)}</td><td>${esc(a.company)}</td><td>${esc(a.appliedAt||'')}</td><td><select onchange='statusApp(${JSON.stringify(a)},this.value)'><option value="pending" ${a.status==='pending'?'selected':''}>قيد المراجعة</option><option value="review" ${a.status==='review'?'selected':''}>مراجعة</option><option value="accepted" ${a.status==='accepted'?'selected':''}>مقبول</option><option value="rejected" ${a.status==='rejected'?'selected':''}>مرفوض</option></select></td><td><button class="btn danger" onclick='deleteApp(${JSON.stringify(a)})'>حذف</button></td></tr>`).join('')}
+async function statusApp(a,status){let d=await api('/api/admin/applications',{method:'PUT',body:JSON.stringify({userId:a.userId,jobId:a.jobId,status})});if(d?.success){toast('تم تحديث الحالة');loadStats()}}
+async function deleteApp(a){if(!confirm('حذف الطلب؟'))return;let d=await api('/api/admin/applications',{method:'DELETE',body:JSON.stringify(a)});if(d?.success){toast('تم حذف الطلب');loadApps();loadStats()}}
+async function loadUsers(){let d=await api('/api/admin/users');$('usersTable').innerHTML=(d||[]).map(u=>`<tr><td>${esc((u.firstName||'')+' '+(u.lastName||''))}</td><td><span class="muted" style="direction:ltr;font-variant-numeric:tabular-nums">${esc(u.id||'')}</span></td><td>${esc(u.email)}</td><td>${esc(u.country)}</td><td>${esc(u.category)}</td><td><span class="muted">${esc(u.walletBalance||'')}</span></td><td><select onchange='editUser(${JSON.stringify(u)},this.value,null)'><option ${u.role==='user'?'selected':''}>user</option><option ${u.role==='admin'?'selected':''}>admin</option></select></td><td><select onchange='editUser(${JSON.stringify(u)},null,this.value)'><option ${u.status==='active'?'selected':''}>active</option><option ${u.status==='blocked'?'selected':''}>blocked</option></select></td><td style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn light" onclick='trialCreditUser("${u.id}")'>💳 شحن تجريبي</button><button class="btn danger" onclick='deleteUser("${u.id}")'>حذف</button></td></tr>`).join('')}
+async function editUser(u,role,status){let d=await api('/api/admin/users',{method:'PUT',body:JSON.stringify({id:u.id,...(role?{role}:{}) ,...(status?{status}:{})})});if(d?.success)toast('تم تحديث المستخدم')}
+async function deleteUser(id){if(!confirm('حذف المستخدم؟'))return;let d=await api('/api/admin/users',{method:'DELETE',body:JSON.stringify({id})});if(d?.success){toast('تم الحذف');loadUsers();loadStats()}}
+async function trialCreditUser(id){
+    const raw = prompt('أدخل مبلغ الشحن التجريبي بالدولار USD:', '10');
+    if(raw === null) return;
+    const usd = Number(raw);
+    if(!Number.isFinite(usd) || usd <= 0 || usd > 100000){
+        toast('أدخل مبلغًا صحيحًا أكبر من صفر');
+        return;
+    }
+    if(!confirm(`تأكيد شحن ${usd.toFixed(2)} USD لهذا المستخدم؟`)) return;
+    const d = await api('/api/admin/users/' + encodeURIComponent(id) + '/trial-credit', {
+        method:'POST',
+        body:JSON.stringify({usd})
+    });
+    if(d?.success){
+        toast(d.message || 'تم الشحن التجريبي بنجاح');
+        loadUsers();
+        if(typeof loadStats === 'function') loadStats(); if(typeof loadInvoices === 'function') loadInvoices();
+    }else{
+        toast(d?.message || 'تعذر تنفيذ الشحن التجريبي');
+    }
+}
+
+const NEWS_PLACEHOLDER='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="#eef3f8"/><text x="80" y="48" text-anchor="middle" fill="#7891a3" font-family="Tahoma" font-size="14">لا توجد صورة</text></svg>');
+function newsThumb(n){const src=n.image||'';return src?`<img src="${esc(src)}" alt="" style="width:90px;height:54px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0">`:`<img src="${NEWS_PLACEHOLDER}" alt="" style="width:90px;height:54px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0">`}
+async function loadNews(){let d=await api('/api/admin/news');$('newsTable').innerHTML=(d||[]).map(n=>`<tr><td>${newsThumb(n)}</td><td>${esc(n.title)||'—'}</td><td>${esc(n.category)||'—'}</td><td>${esc(n.date)||'—'}</td><td>${esc(n.status)||'—'}</td><td class="actions"><button class="btn light" onclick='editNews(${JSON.stringify(n)})'>تعديل</button><button class="btn danger" onclick="deleteNews(${n.id})">حذف</button></td></tr>`).join('')}
+let _newsImagePath='';
+function editNews(n){$('newsId').value=n.id;$('newsTitle').value=n.title||'';$('newsCategory').value=n.category||'';$('newsStatus').value=n.status||'منشور';$('newsContent').value=n.content||'';_newsImagePath=n.image||'';$('newsImagePreview').innerHTML=_newsImagePath?`<img src="${esc(_newsImagePath)}" alt="" style="max-width:220px;max-height:130px;border-radius:10px;border:1px solid #ddd">`:'<span class="muted">لا توجد صورة حالية</span>'}
+function clearNews(){$('newsForm').reset();$('newsId').value='';_newsImagePath='';$('newsImagePreview').innerHTML=''}
+$('newsImageInput').addEventListener('change',()=>{const f=$('newsImageInput').files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$('newsImagePreview').innerHTML=`<img src="${r.result}" alt="" style="max-width:220px;max-height:130px;border-radius:10px;border:1px solid #ddd">`};r.readAsDataURL(f)});
+$('newsForm').onsubmit=async e=>{e.preventDefault();let image=_newsImagePath;const file=$('newsImageInput').files[0];if(file){const fd=new FormData();fd.append('image',file);try{const up=await fetch('/api/admin/news/upload-image',{method:'POST',body:fd,credentials:'same-origin'});const upJson=await up.json();if(upJson?.success){image=upJson.image}else{toast(upJson?.message||'تعذر رفع الصورة');return}}catch(err){toast('تعذر الاتصال بخدمة رفع الصور');return}}let body={id:$('newsId').value?Number($('newsId').value):undefined,title:$('newsTitle').value,category:$('newsCategory').value,status:$('newsStatus').value,content:$('newsContent').value,image:image};let d=await api('/api/admin/news',{method:$('newsId').value?'PUT':'POST',body:JSON.stringify(body)});if(d?.success){toast(d.message);clearNews();loadNews()}}
+async function deleteNews(id){if(!confirm('حذف الخبر؟'))return;let d=await api('/api/admin/news',{method:'DELETE',body:JSON.stringify({id})});if(d?.success){toast('تم الحذف');loadNews()}}
+async function loadMail(){let d=await api('/api/admin/mail-settings');if(!d)return;$('mailHost').value=d.smtp_host||'';$('mailPort').value=d.smtp_port||587;$('mailUser').value=d.smtp_user||'';$('mailFrom').value=d.mail_from||'';$('mailPass').value=''}
+if($('mailForm'))$('mailForm').onsubmit=async e=>{e.preventDefault();let d=await api('/api/admin/mail-settings',{method:'PUT',body:JSON.stringify({smtp_host:$('mailHost').value,smtp_port:$('mailPort').value,smtp_user:$('mailUser').value,smtp_password:$('mailPass').value,mail_from:$('mailFrom').value})});if(d?.success)toast(d.message)}
+if($('mailTestBtn'))$('mailTestBtn').onclick=async()=>{let d=await api('/api/admin/mail-test',{method:'POST',body:JSON.stringify({to_email:$('mailTestTo').value})});$('mailTestResult').textContent=d?.message||''}
+async function loadSiteContactSettings(){
+    const [settings, contact] = await Promise.all([
+        api('/api/settings/general'),
+        api('/api/content/contact')
+    ]);
+    if(settings){
+        $('site_name').value = settings.site_name || '';
+        $('site_description').value = settings.site_description || '';
+        $('top_bar_text').value = settings.top_bar_text || '';
+        $('hero_title').value = settings.hero_title || '';
+        $('hero_subtitle').value = settings.hero_subtitle || '';
+        $('footer_text').value = settings.footer_text || '';
+        $('contact_email').value = settings.contact_email || '';
+        $('contact_phone').value = settings.contact_phone || '';
+        $('address').value = settings.address || '';
+        $('working_hours').value = settings.working_hours || '';
+    }
+    if(contact){
+        $('contact_title').value = contact.title || '';
+        $('contact_subtitle').value = contact.subtitle || '';
+        $('contact_content').value = contact.content || '';
+        $('contact_form_title').value = contact.form_title || '';
+        $('contact_submit_text').value = contact.submit_text || '';
+        $('contact_copyright').value = contact.copyright || '';
+    }
+}
+if($('siteContactForm'))$('siteContactForm').onsubmit=async e=>{
+    e.preventDefault();
+    const settings = {
+        site_name:$('site_name').value,
+        site_description:$('site_description').value,
+        top_bar_text:$('top_bar_text').value,
+        hero_title:$('hero_title').value,
+        hero_subtitle:$('hero_subtitle').value,
+        footer_text:$('footer_text').value,
+        contact_email:$('contact_email').value,
+        contact_phone:$('contact_phone').value,
+        address:$('address').value,
+        working_hours:$('working_hours').value
+    };
+    const contact = {
+        title:$('contact_title').value,
+        subtitle:$('contact_subtitle').value,
+        content:$('contact_content').value,
+        form_title:$('contact_form_title').value,
+        submit_text:$('contact_submit_text').value,
+        copyright:$('contact_copyright').value
+    };
+    const [resSettings, resContact] = await Promise.all([
+        api('/api/settings/general',{method:'PUT',body:JSON.stringify(settings)}),
+        api('/api/content/contact',{method:'POST',body:JSON.stringify(contact)})
+    ]);
+    if(resSettings?.success && resContact?.success){
+        toast('تم حفظ إعدادات الاتصال والموقع بنجاح');
+    } else {
+        const msg = resSettings?.message || resSettings?.error || resContact?.message || resContact?.error || 'حدث خطأ أثناء الحفظ. تأكد من البيانات وحاول مرة أخرى';
+        toast(msg);
+    }
+}
+async function loadAbout(){let d=await api('/api/content/about');for(let k of ['title','subtitle','content','mission','vision'])$('about_'+k).value=d[k]||''}
+$('aboutForm').onsubmit=async e=>{e.preventDefault();let o={};for(let k of ['title','subtitle','content','mission','vision'])o[k]=$('about_'+k).value;let d=await api('/api/admin/content/about',{method:'PUT',body:JSON.stringify(o)});if(d?.success)toast('تم حفظ صفحة من الآن')}
+async function loadSlider(){let d=await api('/api/slider');$('sliderTable').innerHTML=(d||[]).map(s=>`<tr><td>${esc(s.title)}</td><td><a href="${esc(s.image)}" target="_blank">الصورة</a></td><td>${esc(s.link)}</td><td>${s.enabled===false?'<span class="tag" style="background:#fde8e8;color:#c62828">معطّل</span>':'<span class="tag" style="background:#e8f5e9;color:#2e7d32">مفعَّل</span>'}</td><td class="actions"><button class="btn light" onclick='editSlider(${JSON.stringify(s)})'>تعديل</button><button class="btn danger" onclick="deleteSlider(${s.id})">حذف</button></td></tr>`).join('')}
+$('sliderForm').onsubmit=async e=>{e.preventDefault();let id=$('slideId').value;let d=await api('/api/slider',{method:id?'PUT':'POST',body:JSON.stringify({id:id?Number(id):undefined,title:$('slideTitle').value,subtitle:$('slideSubtitle').value,image:$('slideImage').value,link:$('slideLink').value,enabled:$('slideEnabled').checked})});if(d?.success){toast(id?'تم التحديث':'تمت الإضافة');e.target.reset();$('slideId').value='';$('sliderSubmitBtn').textContent='إضافة';$('sliderCancelBtn').style.display='none';loadSlider()}}
+async function deleteSlider(id){if(!confirm('حذف هذه الشريحة؟'))return;let d=await api('/api/slider',{method:'DELETE',body:JSON.stringify({id})});if(d?.success){toast('تم الحذف');loadSlider()}}
+function editSlider(s){$('slideId').value=s.id;$('slideTitle').value=s.title||'';$('slideSubtitle').value=s.subtitle||'';$('slideImage').value=s.image||'';$('slideLink').value=s.link||'/jobs';$('slideEnabled').checked=s.enabled!==false;$('sliderSubmitBtn').textContent='تحديث';$('sliderCancelBtn').style.display='inline-block';window.scrollTo({top:0,behavior:'smooth'})}
+function cancelEditSlider(){$('sliderForm').reset();$('slideId').value='';$('slideEnabled').checked=true;$('sliderSubmitBtn').textContent='إضافة';$('sliderCancelBtn').style.display='none'}
+async function loadTestimonials(){let d=await api('/api/testimonials');$('testList').innerHTML=(d||[]).map(t=>`<div class="card"><strong>${esc(t.name)}</strong><div class="muted">${esc(t.position)} · ${'★'.repeat(Number(t.rating)||0)}</div><p>${esc(t.comment)}</p><div class="actions"><button class="btn light" onclick='editTest(${JSON.stringify(t)})'>تعديل</button><button class="btn danger" onclick='deleteTest(${t.id})'>حذف</button></div></div>`).join('')}
+$('testimonialForm').onsubmit=async e=>{e.preventDefault();let id=$('testId').value;let d=await api('/api/testimonials',{method:id?'PUT':'POST',body:JSON.stringify({id:id?Number(id):undefined,name:$('testName').value,position:$('testPosition').value,rating:Number($('testRating').value),comment:$('testComment').value})});if(d?.success){toast('تم الحفظ');e.target.reset();$('testId').value='';loadTestimonials()}}
+function editTest(t){$('testId').value=t.id;$('testName').value=t.name||'';$('testPosition').value=t.position||'';$('testRating').value=t.rating||5;$('testComment').value=t.comment||''}
+async function deleteTest(id){if(!confirm('حذف الرأي؟'))return;let d=await api('/api/testimonials',{method:'DELETE',body:JSON.stringify({id})});if(d?.success){toast('تم الحذف');loadTestimonials()}}
+async function loadCMS(section){let d=await api('/api/admin/content/'+section);let el=$('cms_'+section);if(!el){el=document.createElement('section');el.id='cms_'+section;el.className='section';$('cmsSections').appendChild(el)}if(section==='pages'){el.innerHTML=`<div class="card"><h2>الصفحات</h2><p class="muted">أضف صفحات جديدة تظهر داخل Layout الموقع الموحد (Header/Footer/Container). الرابط (slug) يجب أن يكون فريداً.</p><form id="cmsForm_pages" class="form"><div class="field"><label>العنوان</label><input id="p_title"></div><div class="field"><label>الوصف</label><input id="p_desc"></div><div class="field"><label>الرابط (slug)</label><input id="p_slug" placeholder="مثال: for-companies"></div><div class="field"><label>أيقونة القائمة</label><input id="p_icon" placeholder="fas fa-file" value="fas fa-file"></div><div class="field full"><label>المحتوى</label><textarea id="p_content"></textarea></div><div class="field" style="border:2px solid #e8f7ee;border-radius:12px;padding:12px;background:#fbfffc"><label style="font-weight:800;display:flex;align-items:center;gap:8px"><input type="checkbox" id="p_enabled" checked style="width:auto"> ☑ مفعّلة</label><small class="muted" style="display:block;margin-top:5px">عند التعطيل لا تعتبر الصفحة متاحة على الموقع.</small></div><div class="field" style="border:2px solid #e8f0ff;border-radius:12px;padding:12px;background:#fbfcff"><label style="font-weight:800;display:flex;align-items:center;gap:8px"><input type="checkbox" id="p_show_menu" style="width:auto"> ☐ إظهار في القائمة</label><small class="muted" style="display:block;margin-top:5px">عند التفعيل تظهر الصفحة تلقائيًا في القائمة المشتركة للموقع.</small></div><button class="btn primary">إضافة</button></form></div><div class="table-wrap" style="margin-top:15px"><table class="table"><thead><tr><th>العنوان</th><th>الوصف</th><th>الرابط</th><th>الحالة</th><th>القائمة</th><th>الإجراءات</th></tr></thead><tbody>${(d||[]).map(x=>`<tr><td>${esc(x.title||x.name||x.label||'')}</td><td>${esc(x.description||x.desc||'')}</td><td><a href="/${esc(x.slug||x.link||x.url||'')}" target="_blank">/${esc(x.slug||x.link||x.url||'')}</a></td><td><span class="tag" style="background:${x.enabled!==false?'#e8f7ee':'#fdecec'};color:${x.enabled!==false?'#18794e':'#b42318'}">${x.enabled!==false?'مفعّلة':'معطّلة'}</span></td><td><span class="tag" style="background:${x.show_in_menu?'#e8f0ff':'#f2f4f7'};color:${x.show_in_menu?'#175cd3':'#667085'}">${x.show_in_menu?'تظهر في القائمة':'مخفية من القائمة'}</span></td><td><button class="btn light" onclick='editPage(${JSON.stringify(x)})'>تعديل</button><button class="btn danger" onclick="deletePage(${Number(x.id)})">حذف</button></td></tr>`).join('')}</tbody></table></div>`;$('cmsForm_pages').onsubmit=async e=>{e.preventDefault();let o={title:$('p_title').value,description:$('p_desc').value,slug:$('p_slug').value,content:$('p_content').value,show_in_menu:$('p_show_menu').checked,enabled:$('p_enabled').checked,menu_icon:$('p_icon').value||'fas fa-file'};let editId=window._pagesEditId||'';let x=await api('/api/admin/content/pages'+(editId?'/'+editId:''),{method:editId?'PUT':'POST',body:JSON.stringify(o)});if(x?.success){toast('تم الحفظ');window._pagesEditId='';loadCMS('pages')}else{toast(x?.message||'حدث خطأ')};return}
+if(section==='social'){el.innerHTML=`<div class="card"><h2>وسائل التواصل</h2><form id="cmsForm_${section}" class="form">${['facebook','instagram','linkedin','twitter','youtube'].map(k=>`<div class="field"><label>${k}</label><input id="cms_${k}" value="${esc(d[k]||'')}"></div>`).join('')}<button class="btn primary">حفظ</button></form></div>`;$('cmsForm_'+section).onsubmit=async e=>{e.preventDefault();let o={};for(let k of ['facebook','instagram','linkedin','twitter','youtube'])o[k]=$('cms_'+k).value;let x=await api('/api/admin/content/social',{method:'PUT',body:JSON.stringify(o)});if(x?.success)toast('تم الحفظ')};return}
+if(section==='languages'){el.innerHTML=`<div class="card"><h2>اللغات</h2><p class="muted">حدد اللغات المتاحة. إضافة ترجمة كاملة يمكن تطويرها以后 لكل صفحة.</p><div id="langList"></div><button class="btn primary" onclick="saveLanguages()">حفظ</button></div>`;$('langList').innerHTML=(d||[]).map((x,i)=>`<div style="padding:10px;border-bottom:1px solid #eee"><label><input type="checkbox" id="lang_${i}" ${x.enabled?'checked':''}> ${esc(x.name)} (${esc(x.code)})</label> ${x.default?' <span class="tag">افتراضية</span>':''}</div>`).join('');window._langs=d;return}
+let list=Array.isArray(d)?d:[];let withIcon=(section==='services');el.innerHTML=`<div class="card"><h2>${sectionNames[section]}</h2><form id="cmsForm_${section}" class="form"><div class="field"><label>العنوان / الاسم</label><input id="c_title"></div><div class="field"><label>الوصف</label><input id="c_desc"></div>${withIcon?`<div class="field"><label>الأيقونة (FontAwesome)</label><input id="c_icon" placeholder="fa-search"></div>`:''}<div class="field"><label>الرابط / الصورة</label><input id="c_link"></div><div class="field full"><label>المحتوى</label><textarea id="c_content"></textarea></div><button class="btn primary">إضافة</button></form></div><div class="table-wrap" style="margin-top:15px"><table class="table"><thead><tr><th>العنوان</th><th>الوصف</th>${withIcon?'<th>الأيقونة</th>':''}<th>الرابط</th><th></th></tr></thead><tbody>${list.map(x=>`<tr><td>${esc(x.title||x.name||x.label)}</td><td>${esc(x.description||x.desc||x.position||'')}</td>${withIcon?`<td>${esc(x.icon||'fa-cog')}</td>`:''}<td>${esc(x.link||x.url||'')}</td><td><button class="btn light" onclick='editCMS(${JSON.stringify(x)})'>تعديل</button><button class="btn danger" onclick="deleteCMS('${section}',${Number(x.id)})">حذف</button></td></tr>`).join('')}</tbody></table></div>`;$('cmsForm_'+section).onsubmit=async e=>{e.preventDefault();let o={title:$('c_title').value,name:$('c_title').value,label:$('c_title').value,description:$('c_desc').value,desc:$('c_desc').value,link:$('c_link').value,url:$('c_link').value,content:$('c_content').value,icon:$('c_icon')?$('c_icon').value:''};let editId=window._cmsEditId||'';let x=await api('/api/admin/content/'+section+(editId?'/'+editId:''),{method:editId?'PUT':'POST',body:JSON.stringify(o)});if(x?.success){toast('تم الحفظ');window._cmsEditId='';loadCMS(section)}}}
+}
+function editCMS(x){window._cmsEditId=x.id;document.getElementById('c_title').value=x.title||x.name||x.label||'';document.getElementById('c_desc').value=x.description||x.desc||x.position||'';if(document.getElementById('c_icon'))document.getElementById('c_icon').value=x.icon||'fa-cog';document.getElementById('c_link').value=x.link||x.url||'';document.getElementById('c_content').value=x.content||'';window.scrollTo({top:0,behavior:'smooth'})}
+async function deleteCMS(s,id){if(!confirm('حذف العنصر؟'))return;let d=await api('/api/admin/content/'+s+'/'+id,{method:'DELETE'});if(d?.success){toast('تم الحذف');loadCMS(s)}}
+function editPage(x){window._pagesEditId=x.id;document.getElementById('p_title').value=x.title||x.name||x.label||'';document.getElementById('p_desc').value=x.description||x.desc||'';document.getElementById('p_slug').value=x.slug||x.link||x.url||'';document.getElementById('p_content').value=x.content||'';document.getElementById('p_show_menu').checked=!!x.show_in_menu;document.getElementById('p_enabled').checked=!(x.enabled===false);document.getElementById('p_icon').value=x.menu_icon||'fas fa-file';window.scrollTo({top:0,behavior:'smooth'})}
+async function deletePage(id){if(!confirm('حذف الصفحة؟'))return;let d=await api('/api/admin/content/pages/'+id,{method:'DELETE'});if(d?.success){toast('تم الحذف');loadCMS('pages')}else{toast(d?.message||'حدث خطأ')}}
+async function saveLanguages(){let d=(window._langs||[]).map((x,i)=>({...x,enabled:$('lang_'+i).checked}));let r=await api('/api/admin/content/languages',{method:'PUT',body:JSON.stringify(d)});if(r?.success)toast('تم الحفظ')}
+async function loadPricingSettings(){
+ const d=await api('/api/admin/pricing');
+ if(!d)return;
+ if(!$('price_job_posting') || !$('price_application') || !$('price_contact_unlock')) return;
+ $('price_job_posting').value=d.pricing?.job_posting_usd ?? 5;
+ $('price_application').value=d.pricing?.application_usd ?? 5;
+ $('price_contact_unlock').value=d.pricing?.contact_unlock_usd ?? 5;
+ renderLiveRates(d.rates||{}, d.rates_updated_at, d.rates_source||'MoneyConvert.net');
+}
+function renderLiveRates(rates, updatedAt, source){
+ const labels={'SAR':'السعودية - SAR','AED':'الإمارات - AED','KWD':'الكويت - KWD','QAR':'قطر - QAR','OMR':'عُمان - OMR','BHD':'البحرين - BHD','EGP':'مصر - EGP','JOD':'الأردن - JOD','LBP':'لبنان - LBP','MAD':'المغرب - MAD','DZD':'الجزائر - DZD','TND':'تونس - TND','LYD':'ليبيا - LYD','SDG':'السودان - SDG','IQD':'العراق - IQD','YER':'اليمن - YER','SYP':'سوريا - SYP','TRY':'تركيا - TRY','USD':'الدولار - USD'};
+ const tbody=$('exchangeRatesTable'); if(!tbody)return;
+ const codes=Object.keys(labels);
+ tbody.innerHTML=codes.map(c=>`<tr><td>${labels[c]}</td><td class="rate-value">${formatRate(rates[c],c)}</td><td>MoneyConvert.net</td><td>${formatRateTime(updatedAt)}</td></tr>`).join('');
+ const txt=$('ratesUpdatedText'); if(txt) txt.textContent=updatedAt ? ('آخر تحديث: '+formatRateTime(updatedAt)+' • المصدر: '+source) : 'لم يتم تسجيل وقت تحديث بعد';
+}
+function formatRate(v,c){ if(v==null || !isFinite(Number(v))) return '—'; const n=Number(v); return n>=1000?n.toLocaleString('en-US',{maximumFractionDigits:0}):n>=10?n.toLocaleString('en-US',{maximumFractionDigits:3}):n.toLocaleString('en-US',{maximumFractionDigits:6}); }
+function formatRateTime(ts){ if(!ts)return '—'; try{return new Date(Number(ts)*1000).toLocaleString('ar-SA',{dateStyle:'short',timeStyle:'short'});}catch(e){return '—';} }
+$('refreshRatesBtn')?.addEventListener('click',async()=>{
+ const btn=$('refreshRatesBtn'); const old=btn.textContent; btn.disabled=true; btn.textContent='⏳ جاري التحديث...';
+ try{const d=await api('/api/admin/exchange-rates/refresh',{method:'POST'}); if(d?.success){renderLiveRates(d.rates||{},d.rates_updated_at,d.rates_source||'MoneyConvert.net'); $('pricingSaveMsg').textContent=d.message||'تم تحديث أسعار الصرف';}else $('pricingSaveMsg').textContent=d?.message||'تعذر تحديث الأسعار';}catch(e){$('pricingSaveMsg').textContent='تعذر الاتصال بمصدر أسعار الصرف';} finally{btn.disabled=false;btn.textContent=old;}
+});
+$('savePricingBtn')?.addEventListener('click',async()=>{
+ const pricing={job_posting_usd:parseFloat($('price_job_posting').value),application_usd:parseFloat($('price_application').value),contact_unlock_usd:parseFloat($('price_contact_unlock').value)};
+ const d=await api('/api/admin/pricing',{method:'PUT',body:JSON.stringify({pricing})});
+ $('pricingSaveMsg').textContent=d?.success?'تم حفظ أسعار الخدمات بنجاح':(d?.message||'تعذر الحفظ');
+ if(d?.success)loadPricingSettings();
+});
+function shortId(s){ s = String(s||''); return s.length > 16 ? s.slice(0,16) + '…' : s; }
+function shortText(s, max){ s = String(s||''); return s.length > max ? s.slice(0,max) + '…' : s; }
+async function loadInvoices(){
+    const filter = $('invoiceStatusFilter')?.value || 'all';
+    const response = await api('/api/admin/invoices');
+    const tbody = $('invoicesTable');
+    if(!tbody) return;
+    const items = Array.isArray(response) ? response : (response?.invoices || []);
+    const filtered = filter === 'all' ? items : items.filter(x => String(x.status || '') === filter);
+
+    const majorAmount = x => {
+        const n = Number(x?.amount);
+        if(!Number.isFinite(n)) return 0;
+        return String(x?.amountUnit || 'major').toLowerCase() === 'minor' ? n/100 : n;
+    };
+    const totals = {};
+    filtered.forEach(x => {
+        const currency = String(x?.currency || 'USD').toUpperCase();
+        totals[currency] = (totals[currency] || 0) + majorAmount(x);
+    });
+    const totalText = Object.entries(totals)
+        .map(([c,v]) => `${v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} ${c}`)
+        .join(' — ');
+    $('invoiceMsg').textContent = filtered.length
+        ? `عدد الفواتير: ${filtered.length} — إجمالي القيم المسجلة: ${totalText}`
+        : 'لا توجد فواتير مطابقة.';
+
+    tbody.innerHTML = filtered.map(x => `<tr>
+      <td>${esc(x.invoiceNumber || x.invoiceId || '')}</td>
+      <td dir="ltr">${esc(x.paymentId || '')}</td>
+      <td>${esc(x.employerName || x.employerEmail || x.employerId || '')}</td>
+      <td>${esc(majorAmount(x).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}))}</td>
+      <td>${esc(String(x.currency || '').toUpperCase())}</td>
+      <td>${esc(x.status || '')}</td>
+      <td>${esc(x.createdAt || x.updatedAt || '')}</td>
+      <td><button class="btn light" type="button" onclick='viewInvoice(${JSON.stringify(x.invoiceId || '')})'>عرض</button></td>
+    </tr>`).join('');
+}
+$('reloadInvoices')?.addEventListener('click',loadInvoices);
+$('invoiceStatusFilter')?.addEventListener('change',loadInvoices);
+async function viewInvoice(id){
+    if(!id) return;
+    const d = await api('/api/admin/invoices/' + encodeURIComponent(id));
+    if(!d) return;
+    const detail = d.invoice || d;
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:#0008;z-index:99999;display:grid;place-items:center;padding:20px';
+    modal.innerHTML = `<div style="background:#fff;width:min(720px,96%);max-height:90vh;overflow:auto;border-radius:18px;padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">تفاصيل الفاتورة</h2><button class="btn light" onclick="this.closest('#invoiceViewModal').remove()">إغلاق</button></div>
+    <div style="margin-top:15px;display:grid;gap:10px">
+    <div><strong>رقم الفاتورة:</strong> ${esc(detail.invoiceNumber || detail.invoiceId || '')}</div>
+    <div><strong>paymentId:</strong> ${esc(detail.paymentId || '')}</div><div><strong>الحالة:</strong> ${esc(detail.status || '')}</div>
+    <div><strong>المبلغ:</strong> ${esc(detail.amount != null ? detail.amount : '')} ${esc(detail.currency || '')}</div>
+    <div><strong>صاحب العمل:</strong> ${esc(detail.employerName || detail.employerEmail || '')}</div>
+    <div><strong>المتقدم:</strong> ${esc(detail.applicantName || detail.applicantEmail || '')}</div>
+    <div><strong>الوظيفة:</strong> ${esc(detail.jobTitle || '')}</div>
+    <div><strong>التاريخ:</strong> ${esc(detail.createdAt || detail.updatedAt || '')}</div>
+    <div><strong>البيانات المفتوحة:</strong> ${detail.contactUnlocked ? 'نعم' : 'لا'}</div>
+    </div></div>`;
+    modal.id = 'invoiceViewModal';
+    document.body.appendChild(modal);
+}
+document.getElementById('reloadInvoices').addEventListener('click', loadInvoices);
+document.getElementById('invoiceStatusFilter').addEventListener('change', loadInvoices);
+async function backup(){
+ let d=await api('/api/admin/backup',{method:'POST'});
+ if(d?.success){toast('تم حفظ نسخة جديدة');}
+ await showBackups();
+}
+async function showBackups(){
+ let items=await api('/api/admin/backups'); if(!items)return;
+ let old=document.getElementById('backupModal'); if(old)old.remove();
+ let list=Array.isArray(items)?items:(items.backups||[]);
+ let modal=document.createElement('div');modal.id='backupModal';
+ modal.style.cssText='position:fixed;inset:0;background:#0008;z-index:99999;display:grid;place-items:center;padding:20px';
+ modal.innerHTML=`<div style="background:#fff;width:min(760px,96%);max-height:90vh;overflow:auto;border-radius:18px;padding:24px">
+ <div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">💾 النسخ الاحتياطية</h2><button class="btn light" onclick="this.closest('#backupModal').remove()">إغلاق</button></div>
+ <p class="muted">أنشئ نسخة حسب النوع، حمّلها إلى الكمبيوتر، أو ارفع نسخة قديمة واستعد النوع الذي تختاره.</p>
+ <div style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0">
+ <select id="modalBackupType" style="padding:11px;border:1px solid #d7dee7;border-radius:10px;min-width:260px"><option value="data">بيانات المستخدمين والوظائف والطلبات</option><option value="all">نسخة كاملة</option></select>
+ <button class="btn primary" id="modalCreateBackup">💾 إنشاء النسخة</button></div>
+ <div id="modalBackupMsg"></div><h3>النسخ المحفوظة</h3>
+ <div id="modalBackupList">${list.length?list.map(x=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:11px;border:1px solid #eee;border-radius:10px;margin:7px 0"><span><strong>${esc(x.name)}</strong><br><small class="muted">${Math.round((x.size||0)/1024)} KB</small></span><div style="display:flex;gap:8px"><a class="btn primary" href="/api/admin/backup/download?file=${encodeURIComponent(x.name)}">⬇ تحميل إلى الكمبيوتر</a><button class="btn danger" style="background:#f44336;color:#fff;border:0;padding:8px 14px;border-radius:8px;cursor:pointer" onclick="deleteBackup('${encodeURIComponent(x.name)}',this)">🗑 حذف</button></div></div>`).join(''):'<p class="muted">لا توجد نسخ محفوظة.</p>'}</div>
+ <hr style="border:0;border-top:1px solid #eee;margin:20px 0"><h3>⬆ رفع نسخة من الكمبيوتر واستعادتها</h3>
+ <p class="muted">اختر نوع النسخة من القائمة نفسها، ثم اختر ملف ZIP من جهازك.</p><input id="modalRestoreFile" type="file" accept=".zip">
+ <button class="btn primary" id="modalRestore" style="margin-top:10px">⬆ رفع واستعادة</button><div id="modalRestoreMsg"></div></div>`;
+ document.body.appendChild(modal);
+ document.getElementById('modalCreateBackup').onclick=async()=>{const type=document.getElementById('modalBackupType').value,m=document.getElementById('modalBackupMsg');m.textContent='جاري إنشاء النسخة...';const d=await api('/api/admin/backup/create-typed',{method:'POST',body:JSON.stringify({type})});m.innerHTML=d?.success?d.message+' <a href="'+d.download_url+'">⬇ تحميل الآن</a>':(d?.message||'حدث خطأ');};
+ document.getElementById('modalRestore').onclick=async()=>{const f=document.getElementById('modalRestoreFile').files[0],type=document.getElementById('modalBackupType').value,m=document.getElementById('modalRestoreMsg');if(!f){m.textContent='اختر ملف ZIP أولاً.';return}m.textContent='جاري الاستعادة...';const fd=new FormData();fd.append('backup',f);fd.append('type',type);try{const r=await fetch('/api/admin/backup/restore',{method:'POST',body:fd});const d=await r.json();m.textContent=d.message||d.error||'تمت العملية.'}catch(e){m.textContent='تعذر الاتصال بالخادم.'}};
+}
+async function deleteBackup(name,btn){
+ if(!confirm('هل تريد حذف هذه النسخة الاحتياطية؟')){
+  return;
+ }
+ btn.disabled=true;
+ try{
+  const r=await fetch('/api/admin/backup/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:decodeURIComponent(name)})});
+  const d=await r.json();
+  if(d.success){toast('تم حذف النسخة الاحتياطية');showBackups();}
+  else{toast(d.message||'تعذر حذف النسخة');btn.disabled=false;}
+ }catch(e){
+  toast('تعذر الاتصال بالخادم');
+  btn.disabled=false;
+ }
+}
+
+(async()=>{let s=await api('/api/admin/session');if(!s?.authenticated){location.href='/admin';return}loadStats()})();
+</script><section id="backups" class="section" style="display:none"><div class="card"><h2>النسخ الاحتياطية</h2><p>يمكنك رفع نسخة ZIP من جهازك أو تنزيل نسخة موجودة.</p><div id="backupList"></div><form id="backupUploadForm"><input id="backupFile" type="file" accept=".zip"><button class="btn primary" type="submit">رفع نسخة احتياطية</button></form><div id="backupMsg"></div></div></section><section id="v7-backup-panel" class="section" style="display:none"><div class="card">
+<h2>💾 النسخ الاحتياطية</h2>
+<p>أنشئ نسخة حسب نوع البيانات، أو ارفع نسخة محفوظة على جهازك لاستعادتها.</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0">
+<select id="v10BackupType" style="padding:11px;border:1px solid #d7dee7;border-radius:10px">
+<option value="data">بيانات المستخدمين والوظائف والطلبات</option>
+<option value="all">نسخة كاملة</option>
+</select>
+<button id="v10CreateBackup" class="btn primary" type="button">💾 إنشاء نسخة</button>
+</div>
+<div id="v10BackupMsg" style="margin:8px 0"></div>
+<div id="v7BackupList"></div>
+<hr style="border:0;border-top:1px solid #eee;margin:20px 0">
+<h3>⬆ استعادة نسخة من الكمبيوتر</h3>
+<p style="color:#6b7280">اختر نوع النسخة ثم ملف ZIP. سيتم استعادة الملفات المطابقة فقط.</p>
+<form id="v10RestoreForm" enctype="multipart/form-data" style="display:flex;gap:10px;flex-wrap:wrap">
+<input id="v10RestoreFile" type="file" accept=".zip" style="max-width:360px;padding:8px" required>
+<button class="btn primary" type="submit">⬆ رفع واستعادة</button>
+</form>
+<div id="v10RestoreMsg"></div>
+</div></section><script id="v8-admin-js">
+(function(){
+const q=document.getElementById('adminGlobalSearch'),b=document.getElementById('adminGlobalSearchBtn'),r=document.getElementById('adminSearchResults');
+const items=[['الثقة والبلاغات','trust'],['التحليلات والذكاء التشغيلي','analytics'],['الرئيسية','dashboard'],['لوحة الإحصائيات','dashboard'],['الوظائف','jobs'],['طلبات التوظيف','applications'],['المستخدمون','users'],['الأخبار','news'],['من نحن','about'],['الخدمات','services'],['الأسئلة الشائعة','faq'],['السلايدر','slider'],['آراء العملاء','testimonials'],['التعليقات','comments'],['المعرض','gallery'],['أعمالنا','portfolio'],['فريق العمل','team'],['الشركاء','partners'],['لماذا نحن','why'],['الإعدادات','settings'],['البريد الإلكتروني','mail'],['القائمة','menu'],['التواصل الاجتماعي','social'],['اللغات','languages'],['الصفحات','pages'],['النظام','system'],['نسخة احتياطية','backups'],['سجل الأخطاء','error_log']];
+function searchNow(){const s=(q.value||'').trim().toLowerCase();if(s.length<3){r.style.display='none';return}const hits=items.filter(x=>x[0].toLowerCase().includes(s));r.innerHTML=hits.length?hits.map(x=>'<button type="button" data-id="'+x[1]+'" style="display:block;width:100%;padding:10px;border:0;background:#fff;text-align:right;border-radius:8px;cursor:pointer">'+x[0]+'</button>').join(''):'<div style="padding:10px">لم يتم العثور على عنصر.</div>';r.style.display='block';r.querySelectorAll('button').forEach(x=>x.onclick=()=>{const el=document.querySelector('[data-section="'+x.dataset.id+'"]')||document.getElementById(x.dataset.id);if(el)el.click?.()||el.scrollIntoView({behavior:'smooth'});r.style.display='none';});}
+b?.addEventListener('click',searchNow);q?.addEventListener('input',()=>{if((q.value||'').trim().length>=3)searchNow();else r.style.display='none'});q?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchNow();}});
+async function loadBackups(){const box=document.getElementById('v7BackupList');if(!box)return;try{const r=await fetch('/api/admin/backups');const d=await r.json();const list=Array.isArray(d)?d:(d.backups||[]);box.innerHTML=list.length?list.map(x=>'<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px;border-bottom:1px solid #eee"><span>'+x.name+'</span><a class="btn" href="/api/admin/backup/download?file='+encodeURIComponent(x.name)+'">⬇ تحميل</a></div>').join(''):'<p>لا توجد نسخ محفوظة.</p>';}catch(e){box.textContent='تعذر تحميل قائمة النسخ.'}}
+document.getElementById('v10CreateBackup').addEventListener('click',async()=>{const type=document.getElementById('v10BackupType').value,m=document.getElementById('v10BackupMsg');m.textContent='جاري إنشاء النسخة...';try{const r=await fetch('/api/admin/backup/create-typed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type})});const d=await r.json();m.innerHTML=d.success?d.message+' <a href="'+d.download_url+'">⬇ تحميل الآن</a>':(d.message||'حدث خطأ');loadBackups();}catch(e){m.textContent='تعذر الاتصال بالخادم.'}});
+document.getElementById('v10RestoreForm').addEventListener('submit',async e=>{e.preventDefault();const f=document.getElementById('v10RestoreFile').files[0],type=document.getElementById('v10BackupType').value,m=document.getElementById('v10RestoreMsg');if(!f){m.textContent='⚠️ اختر ملف ZIP من الكمبيوتر أولاً.';return;}m.textContent='جاري الاستعادة...';const fd=new FormData();fd.append('backup',f);fd.append('type',type);try{const r=await fetch('/api/admin/backup/restore',{method:'POST',body:fd});const d=await r.json();m.textContent=d.message||'تم';loadBackups();}catch(e){m.textContent='تعذر استعادة النسخة.'}});
+loadBackups();
+})();
+</script>
+</body>
+</html>
+
+
+<script>
+/* ACCOUNT_NAV_ROLE_AUDIT_FIX_20260816 */
+(function(){
+  'use strict';
+
+  function role(){
+    const b = document.body;
+    return String(
+      b?.dataset?.userRole ||
+      window.currentUser?.role ||
+      window.user?.role ||
+      ''
+    ).toLowerCase();
+  }
+
+  function isSeeker(r){
+    return ['user','job_seeker','seeker','candidate'].includes(r);
+  }
+
+  function makeMenu(){
+    const r = role();
+    const existing = Array.from(document.querySelectorAll(
+      '.user-menu, .profile-menu, .account-menu, .user-dropdown, .profile-dropdown, [class*="user-menu"], [class*="profile-menu"]'
+    ));
+
+    existing.forEach(menu => {
+      const employerLinks = Array.from(menu.querySelectorAll('a[href="/employer"]'));
+      if (isSeeker(r)) employerLinks.forEach(a => (a.closest('li') || a).remove());
+
+      // Never show wallet as a top-level navigation item from the home page.
+      if ((location.pathname === '/' || location.pathname === '') &&
+          !menu.contains(document.activeElement)) {
+        // Keep links inside the menu; this block intentionally does not remove menu items.
+      }
+    });
+
+    // Remove standalone account links only if they are outside a user/account dropdown.
+    if (location.pathname === '/' || location.pathname === '') {
+      document.querySelectorAll('a[href="/profile"],a[href="/employer"],a[href="/wallet"],a[href="/logout"]').forEach(a => {
+        const menu = a.closest('.user-menu,.profile-menu,.account-menu,.user-dropdown,.profile-dropdown,[class*="user-menu"],[class*="profile-menu"]');
+        if (!menu) {
+          const item = a.closest('li,.nav-item,.menu-item') || a;
+          item.remove();
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', makeMenu);
+  } else {
+    makeMenu();
+  }
+})();
+</script>

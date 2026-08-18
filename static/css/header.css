@@ -1,0 +1,309 @@
+/* ===== الهيدر ===== */
+.header {
+    background: linear-gradient(135deg, #0d2b3e 0%, #1a4a6e 100%);
+    color: #fff;
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+}
+
+.header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo i {
+    font-size: 32px;
+    color: #ffd700;
+}
+
+.logo h1 {
+    color: #fff !important;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.logo span {
+    color: #fff !important;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    display: block;
+    font-weight: 400;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.nav a {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 10px;
+    transition: 0.3s;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.nav a:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+}
+
+.nav a.active {
+    background: rgba(255,255,255,0.15);
+    color: #ffd700;
+}
+
+.nav a i {
+    margin-left: 6px;
+}
+
+.nav .auth-btn {
+    padding: 8px 22px;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.nav .auth-btn:first-child {
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.3);
+}
+
+.nav .auth-btn:first-child:hover {
+    border-color: #ffd700;
+    background: rgba(255,215,0,0.1);
+}
+
+.nav .register-btn {
+    background: #ffd700;
+    color: #0d2b3e !important;
+}
+
+.nav .register-btn:hover {
+    background: #ffed4a;
+    transform: scale(1.05);
+}
+
+.nav .user-menu {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 30px;
+    background: rgba(255,255,255,0.1);
+    transition: 0.3s;
+}
+
+.nav .user-menu:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.nav .user-menu img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid #ffd700;
+    object-fit: cover;
+}
+
+.nav .user-menu span {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.nav .user-dropdown {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    background: #fff;
+    color: #1a2a3a;
+    min-width:220px;
+    border-radius: 14px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    padding: 8px 0;
+    z-index: 200;
+}
+
+.nav .user-dropdown.show {
+    display: block;
+}
+
+.nav #authButtons {
+    display: flex;
+}
+
+/* منع ظهور العناصر المزدوجة في الهيدر */
+.nav > div {
+    flex-shrink: 0;
+}
+
+.nav .user-dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    color: #1a2a3a !important;
+    font-size: 14px;
+    border-radius: 0;
+}
+
+.nav .user-dropdown a:hover {
+    background: #f0f4f9;
+}
+
+.nav .user-dropdown hr {
+    margin: 6px 0;
+    border: none;
+    border-top: 1px solid #e0e6ed;
+}
+
+.nav .user-dropdown .logout-btn {
+    color: #c62828 !important;
+}
+
+.nav .user-dropdown .logout-btn:hover {
+    background: #fde8e8;
+}
+
+.site-logo-white,
+.logo h1,
+.logo span {
+    color: #fff !important;
+    text-decoration: none;
+}
+
+/* ===== حالة تحميل محايدة لمنطقة أزرار الحساب (تمنع Layout Shift) ===== */
+.auth-loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 234px;
+    height: 38px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+.auth-loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #ffd700;
+    border-radius: 50%;
+    animation: auth-spin 0.8s linear infinite;
+}
+@keyframes auth-spin {
+    to { transform: rotate(360deg); }
+}
+
+
+/* ===== Responsive behavior shared by every page ===== */
+@media (max-width: 768px) {
+    .header .container {
+        flex-direction: column;
+    }
+    .nav {
+        justify-content: center;
+    }
+}
+
+
+/* ===== Canonical account dropdown: identical on every public page ===== */
+.header .nav .user-dropdown {
+    min-width: 220px !important;
+    width: 220px !important;
+    padding: 8px 0 !important;
+    border-radius: 14px !important;
+    box-sizing: border-box !important;
+}
+.header .nav .user-dropdown a {
+    box-sizing: border-box !important;
+    min-height: 40px !important;
+    padding: 10px 20px !important;
+    font-size: 14px !important;
+}
+.header .nav .user-dropdown hr { margin: 6px 0 !important; }
+
+
+/* CANONICAL_ACCOUNT_DROPDOWN_POSITION_20260816 */
+.header .nav { position: relative !important; }
+.header .nav .user-dropdown {
+    left: 0 !important;
+    right: auto !important;
+    top: 60px !important;
+    width: 220px !important;
+    min-width: 220px !important;
+    max-width: 220px !important;
+}
+
+.smart-candidate-panel{margin:2rem 0;padding:1.25rem;border-radius:16px;border:1px solid rgba(0,0,0,.08);background:var(--card-bg,#fff)}
+.smart-candidate-head{display:flex;justify-content:space-between;gap:1rem;align-items:center}
+.smart-candidate-results{display:grid;gap:.75rem;margin-top:1rem}
+.smart-job-card{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;padding:1rem;border-radius:12px;background:rgba(0,0,0,.025)}
+.smart-job-card h3{margin:0 0 .25rem}.smart-job-card p{margin:.25rem 0}
+.smart-job-card>strong{font-size:1.1rem;white-space:nowrap}
+.smart-skill{display:inline-block;margin:.25rem .25rem 0 0;padding:.2rem .5rem;border-radius:999px;background:rgba(0,0,0,.07);font-size:.8rem}
+.smart-empty{padding:1rem;opacity:.75}
+@media(max-width:700px){.smart-candidate-head{flex-direction:column;align-items:stretch}.smart-job-card{flex-direction:column}}
+
+.compare-btn{background:#fff;color:#1a4a6e;border:1px solid #d7e2ec;border-radius:8px;padding:8px 10px;cursor:pointer}.compare-btn:hover{background:#f1f6fa}
+
+
+/* LANGUAGE_BESIDE_NOTIFICATION_20260817 */
+.header .nav .language-control-slot{display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto;min-height:38px}
+.header .nav #notificationBell{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;border-radius:11px;transition:background .2s,transform .2s}
+.header .nav #notificationBell:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.header .nav .language-control-slot .site-language-dropdown{position:relative!important;top:auto!important;right:auto!important;left:auto!important}
+@media(max-width:768px){
+  .header .nav .language-control-slot{min-height:36px}
+  .header .nav #notificationBell{width:36px;height:36px}
+}
+
+/* LANGUAGE_BAR_SEPARATED_20260817 */
+.standalone-language-bar{background:#fff;border-bottom:1px solid #e8edf2;box-shadow:0 2px 8px rgba(20,55,80,.05);position:relative;z-index:1100}
+.standalone-language-inner{min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.standalone-language-label{display:flex;align-items:center;gap:10px;color:#18364d}
+.standalone-language-label>span{font-size:20px}.standalone-language-label div{display:flex;flex-direction:column;line-height:1.15}.standalone-language-label strong{font-size:12px}.standalone-language-label small{font-size:10px;color:#7b8997;margin-top:3px}
+.standalone-language-bar .site-language-trigger{background:#f7fafc!important;color:#18364d!important;border-color:#dce5ec!important;box-shadow:0 4px 12px rgba(25,65,90,.08)!important}
+.standalone-language-bar .site-language-trigger:hover{background:#eef5fa!important}
+@media(max-width:600px){.standalone-language-inner{min-height:48px}.standalone-language-label strong{font-size:11px}.standalone-language-label small{font-size:9px}.standalone-language-label>span{font-size:18px}}
+
+
+/* ACCOUNT_LANGUAGE_DROPDOWN_20260817 */
+.header .nav .user-dropdown .account-language-item{position:relative;padding:0 8px;margin:2px 0;display:block}
+.header .nav .user-dropdown .account-language-dropdown{position:relative;width:100%;font-family:inherit}
+.header .nav .user-dropdown .account-language-trigger{width:100%;min-height:40px;display:flex;align-items:center;gap:10px;padding:10px 12px;border:0;border-radius:9px;background:transparent;color:#1a2a3a;cursor:pointer;font:600 14px/1.2 inherit;text-align:start;box-sizing:border-box}
+.header .nav .user-dropdown .account-language-trigger:hover{background:#f0f4f9}
+.header .nav .user-dropdown .account-language-trigger .lang-trigger-icon{width:20px;text-align:center;font-size:17px}
+.header .nav .user-dropdown .account-language-trigger .lang-trigger-copy{flex:1}
+.header .nav .user-dropdown .account-language-trigger .lang-trigger-copy strong{font-weight:600}
+.header .nav .user-dropdown .account-language-trigger .lang-chevron{font-size:10px;opacity:.65;transition:transform .18s}
+.header .nav .user-dropdown .account-language-dropdown.open .lang-chevron{transform:rotate(180deg)}
+.header .nav .user-dropdown .account-language-menu{display:none;position:relative;inset:auto;width:100%;margin:3px 0 5px;padding:5px;border:1px solid #e4eaf0;border-radius:10px;background:#f8fafc;box-shadow:none;box-sizing:border-box}
+.header .nav .user-dropdown .account-language-dropdown.open .account-language-menu{display:block}
+.header .nav .user-dropdown .account-language-menu .lang-options{display:grid;gap:2px}
+.header .nav .user-dropdown .account-language-menu .site-language-option{width:100%;display:flex;align-items:center;gap:8px;padding:8px;border:0;border-radius:8px;background:transparent;color:#1a2a3a;cursor:pointer;text-align:start;font:600 12px/1.2 inherit}
+.header .nav .user-dropdown .account-language-menu .site-language-option:hover{background:#eaf2f7}
+.header .nav .user-dropdown .account-language-menu .site-language-option.active{background:#e4f1f8;color:#0d608b}
+.header .nav .user-dropdown .account-language-menu .lang-option-main{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.header .nav .user-dropdown .account-language-menu .lang-flag{width:22px;text-align:center;font-size:16px}
+.header .nav .user-dropdown .account-language-menu .lang-option-copy{display:flex;flex-direction:column;gap:2px}
+.header .nav .user-dropdown .account-language-menu .lang-option-copy small{font-size:9px;opacity:.6}
+.header .nav .user-dropdown .account-language-menu .lang-check{font-size:10px}
+@media(max-width:600px){.header .nav .user-dropdown{width:230px!important;min-width:230px!important;max-width:230px!important}}

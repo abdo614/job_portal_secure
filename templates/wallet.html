@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="{{ site_lang|default("en") }}" dir="{{ site_dir|default("ltr") }}">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>المحفظة - منصة التوظيف</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}body{margin:0;width:100%;max-width:100%;overflow-x:hidden;background:#f4f7fb;color:#1a2a3a;font-family:Tajawal,Arial,sans-serif} .header{background:linear-gradient(135deg,#0d2b3e,#1a4a6e);color:#fff;padding:15px 0;position:sticky;top:0;z-index:100}.container{max-width:1200px;margin:auto;padding:0 20px}.header .container{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}.logo{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none}.logo i{font-size:28px;color:#ffd700}.logo h1{font-size:22px;margin:0}.logo span{font-size:12px}.nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.nav>a{color:#fff;text-decoration:none;padding:8px 16px;border-radius:8px;transition:.3s}.nav>a:hover{background:#ffffff18}.user-menu{display:none;align-items:center;gap:8px;cursor:pointer;padding:6px 10px;border-radius:10px}.user-menu img{width:34px;height:34px;border-radius:50%;object-fit:cover}.user-dropdown{display:none;position:absolute;top:70px;right:20px;background:#fff;border-radius:12px;box-shadow:0 10px 35px #0002;min-width:210px;padding:8px;z-index:200}.user-dropdown.show{display:block}.user-dropdown a{display:block;color:#1a2a3a!important;text-decoration:none;padding:10px;border-radius:8px}.user-dropdown a:hover{background:#f1f5f9}.wrap{width:100%;max-width:1200px;margin:0 auto;padding:30px 20px;box-sizing:border-box}.hero{background:linear-gradient(135deg,#0d2b3e,#1a4a6e);color:#fff;border-radius:20px;padding:28px;margin-bottom:22px}.hero h1{margin:0 0 7px;font-size:30px}.hero p{margin:0;opacity:.9}.balance-card{background:#fff;border-radius:18px;padding:24px;box-shadow:0 5px 25px #0000000d;margin-bottom:22px}.balance{font-size:36px;font-weight:800;color:#1a4a6e;margin:8px 0}.attempts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:18px}.attempt{background:#f8fafc;border:1px solid #e0e8f0;border-radius:15px;padding:17px}.attempt-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.pill{padding:5px 10px;border-radius:999px;font-weight:800;font-size:13px}.bar{height:8px;background:#e9eef3;border-radius:99px;overflow:hidden;margin:12px 0}.fill{height:100%;background:#2e7d32}.tx{background:#fff;border-radius:18px;padding:24px;box-shadow:0 5px 25px #0000000d}.tx-item{padding:14px;border:1px solid #e5ebf1;border-radius:12px;margin-bottom:10px;display:flex;justify-content:space-between;gap:15px;align-items:center}.credit{color:#2e7d32}.debit{color:#c62828}.muted{color:#6b7a8a}@media(max-width:760px){.header .container{flex-direction:column}.nav{justify-content:center}.user-dropdown{top:120px;right:10px}.hero h1{font-size:24px}.balance{font-size:30px}}
+</style>
+
+<style id="wallet-shared-header-final">
+.header{width:100%;overflow:visible}
+.header>.container{width:100%;max-width:1200px;margin:0 auto;padding-left:20px;padding-right:20px;box-sizing:border-box}
+.nav{min-width:0;max-width:100%}
+
+@media(max-width:760px){
+  .header .container{width:100%;padding-left:10px;padding-right:10px}
+  .wrap{max-width:1200px;padding-left:10px;padding-right:10px}
+}
+</style>
+
+<style id="wallet-final-layout">
+html,body{width:100%;max-width:100%;overflow-x:clip;}
+.header{width:100%;}
+.header .container{width:100%;max-width:1200px;margin:0 auto;padding:0 20px;}
+
+.wrap{width:100%;max-width:1200px;margin:0 auto;}
+@media(max-width:760px){
+ .header .container{padding:0 10px;}
+ .wrap{padding-left:10px;padding-right:10px;}
+
+}
+</style>
+    <link rel="stylesheet" href="/static/css/header.css">
+</head><body data-user-role="{{ current_user.role if current_user else (user.role if user else "") }}">
+
+    <!-- ===== الهيدر الموحد: نفس هيدر الرئيسية ===== -->
+    {% include 'header.html' %}
+
+<main class="wrap"><section class="hero"><h1><i class="fas fa-wallet"></i> المحفظة</h1><p>إدارة رصيدك ومتابعة المحاولات المجانية الخاصة بك بسهولة.</p></section>
+<section class="balance-card"><div class="muted">الرصيد المتاح</div><div class="balance" id="balance">جاري التحميل...</div><div class="muted" id="balanceLocal"></div>
+<div id="attemptSummary" style="margin-top:18px;font-size:18px;font-weight:800;color:#1a4a6e">جاري تحميل المحاولات المجانية...</div><div class="attempts" id="attempts"></div></section>
+<section class="tx"><h2 style="margin-top:0;color:#1a4a6e"><i class="fas fa-history"></i> آخر المعاملات</h2><div id="transactions" class="muted">جاري تحميل المعاملات...</div></section>
+</main>
+<script>
+let currentUser=null;const $=id=>document.getElementById(id);
+document.addEventListener('click',e=>{if(!e.target.closest('.user-menu')&&!e.target.closest('.user-dropdown'))$('userDropdown').classList.remove('show')});
+async function api(url,opt={}){const r=await fetch(url,{credentials:'same-origin',...opt});let d=null;try{d=await r.json()}catch{}if(!r.ok)throw new Error(d?.message||'حدث خطأ في الخادم');return d}
+function renderAttempts(items){
+  const exhausted=items.length && items.every(x=>Number(x.left)<=0);
+  $('attemptSummary').textContent=items.length ? (exhausted ? 'انتهت المحاولات المجانية لهذه الخدمات' : 'المحاولات المجانية حسب كل خدمة') : 'لا توجد حصص مجانية متاحة';
+  $('attempts').innerHTML=items.map(x=>{const pct=x.limit?Math.min(100,x.left/x.limit*100):0;return `<div class="attempt"><div class="attempt-head"><strong><i class="fas ${x.icon}"></i> ${x.title}</strong><span class="pill" style="background:${x.left?'#e8f5e9':'#ffebee'};color:${x.left?'#2e7d32':'#c62828'}">${x.left}/${x.limit}</span></div><div class="bar"><div class="fill" style="width:${pct}%"></div></div><div class="muted">${x.desc}</div></div>`}).join('')
+}
+async function load(){try{const auth=await api('/api/check-auth');if(!auth.authenticated){location.href='/';return}currentUser=auth.user;
+const bal=await api('/api/wallet/balance');const b=bal?.balance||{};$('balance').textContent=b.formattedLocal||b.formatted||`${((Number(b.available||0))/100).toFixed(2)} USD`;$('balanceLocal').textContent=b.currency?`عملة المحفظة المعروضة حسب دولة حسابك: ${b.currency}`:'';
+const [tx,post,unlock,apply]=await Promise.all([api('/api/wallet/transactions?limit=10'),currentUser.role==='employer'?api('/api/employer/job-posting-sadaqah-status'):Promise.resolve(null),currentUser.role==='employer'?api('/api/employer/sadaqah-status'):Promise.resolve(null),api('/api/applications/sadaqah-status')]);
+let items=[];if(post)items.push({icon:'fa-briefcase',title:'نشر وظيفة',left:Number(post.freeJobPostsRemaining||0),limit:Number(post.freeJobPostLimit||3),desc:'أول 3 وظائف مجانًا'});if(unlock)items.push({icon:'fa-phone',title:'فتح بيانات متقدم',left:Number(unlock.freeUnlocksRemaining||0),limit:Number(unlock.freeUnlockLimit||3),desc:'أول 3 عمليات فتح مجانًا'});if(apply)items.push({icon:'fa-paper-plane',title:'التقديم على وظيفة',left:Number(apply.freeApplicationsRemaining||0),limit:Number(apply.freeApplicationLimit||3),desc:'أول 3 تقديمات مجانًا'});renderAttempts(items);
+const arr=tx?.transactions||[];$('transactions').innerHTML=arr.length?arr.map(x=>{const credit=x.type==='credit';const display=x.formattedLocal||((Number(x.amount||0)/100).toFixed(2)+' '+(tx.currency||'USD'));return `<div class="tx-item"><div><strong>${x.description|| (credit?'إضافة رصيد':'خصم من الرصيد')}</strong><div class="muted" style="font-size:12px;margin-top:4px">${x.createdAt?new Date(x.createdAt).toLocaleString('ar-SA'):''}</div></div><strong class="${credit?'credit':'debit'}">${credit?'+':'-'}${display}</strong></div>`}).join(''):'لا توجد معاملات حتى الآن.';
+}catch(e){$('balance').textContent='تعذر تحميل المحفظة';$('attemptSummary').textContent=e.message||'تعذر تحميل البيانات';$('transactions').textContent='تعذر تحميل المعاملات.'}}
+load();
+</script>
+<section id="wallet-pricing-section-20260816" class="wallet-pricing-section" aria-label="أسعار الخدمات">
+  <div class="wallet-section-card">
+    <div class="wallet-section-head">
+      <div>
+        <h2>💰 أسعار الخدمات</h2>
+        <p>بعد انتهاء المحاولات المجانية، تُخصم تكلفة الخدمة من رصيد المحفظة.</p>
+      </div>
+    </div>
+    <div id="walletPricingList" class="wallet-pricing-grid">
+      <div class="wallet-pricing-loading">جاري تحميل الأسعار...</div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  async function loadWalletPricing(){
+    const box=document.getElementById('walletPricingList');
+    if(!box)return;
+    try{
+      const r=await fetch('/api/pricing',{credentials:'same-origin',cache:'no-store'});
+      const d=await r.json();
+      const prices=d?.prices||{};
+      const labels={
+        job_posting_usd:{title:'نشر وظيفة',icon:'fa-briefcase',desc:'بعد انتهاء المحاولات المجانية.'},
+        application_usd:{title:'التقديم على وظيفة',icon:'fa-paper-plane',desc:'بعد انتهاء المحاولات المجانية.'},
+        contact_unlock_usd:{title:'فتح بيانات المتقدم',icon:'fa-user-check',desc:'بعد انتهاء المحاولات المجانية.'}
+      };
+      const items=Object.entries(labels)
+        .map(([key,meta])=>({key,...meta,...(prices[key]||{})}))
+        .filter(x=>Number.isFinite(Number(x.usd)));
+
+      if(!items.length){
+        box.innerHTML='<div class="wallet-pricing-empty">لا توجد أسعار منشورة حاليًا.</div>';
+        return;
+      }
+
+      box.innerHTML=items.map(x=>{
+        const title=x.title || 'خدمة';
+        // Admin prices are stored in USD. /api/pricing also returns the
+        // converted local amount and formatted currency for this user.
+        const displayPrice = x.formatted || (
+          Number.isFinite(Number(x.localAmount))
+            ? Number(x.localAmount).toFixed(2)+' '+(x.currency||d.currency||'USD')
+            : Number(x.usd).toFixed(2)+' USD'
+        );
+        return `<div class="wallet-price-card">
+          <div class="wallet-price-icon">💳</div>
+          <div class="wallet-price-info">
+            <h3>${escWallet(title)}</h3>
+            <p>${escWallet(x.desc||'')}</p>
+          </div>
+          <div class="wallet-price-value">${escWallet(displayPrice)}</div>
+        </div>`;
+      }).join('');
+    }catch(e){
+      box.innerHTML='<div class="wallet-pricing-empty">تعذر تحميل قائمة الأسعار حاليًا.</div>';
+    }
+  }
+  function escWallet(v){
+    return String(v ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadWalletPricing);
+  else loadWalletPricing();
+})();
+</script>
+<style>
+#wallet-pricing-section-20260816{margin-top:24px}
+#wallet-pricing-section-20260816 .wallet-section-card{
+  width:100%; max-width:1100px; margin:0 auto; padding:20px;
+  border-radius:16px; box-sizing:border-box;
+}
+#wallet-pricing-section-20260816 .wallet-pricing-grid{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:14px; margin-top:16px;
+}
+#wallet-pricing-section-20260816 .wallet-price-card{
+  display:flex; align-items:center; gap:12px; padding:16px;
+  border:1px solid rgba(0,0,0,.08); border-radius:12px;
+  box-sizing:border-box; min-width:0;
+}
+#wallet-pricing-section-20260816 .wallet-price-icon{font-size:24px;flex:0 0 auto}
+#wallet-pricing-section-20260816 .wallet-price-info{flex:1;min-width:0}
+#wallet-pricing-section-20260816 .wallet-price-info h3{margin:0 0 4px;font-size:15px}
+#wallet-pricing-section-20260816 .wallet-price-info p{margin:0;font-size:12px;opacity:.75}
+#wallet-pricing-section-20260816 .wallet-price-value{
+  white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums
+}
+</style>
+
+
+<style id="wallet-final-overflow-guard">
+#wallet-pricing-section-20260816,
+#wallet-pricing-section-20260816 .wallet-section-card,
+#wallet-pricing-section-20260816 .wallet-pricing-grid,
+#wallet-pricing-section-20260816 .wallet-price-card{max-width:100%;min-width:0;box-sizing:border-box}
+#wallet-pricing-section-20260816 .wallet-price-info{min-width:0}
+</style>
+
+
+<section id="wallet-plans-section" class="wallet-plans-section" aria-label="الباقات والاشتراكات">
+  <div class="wallet-section-card">
+    <div class="wallet-section-head"><div><h2>📦 الباقات والاشتراكات</h2><p>الباقات المعتمدة من المنصة، مع عرض السعر بعملة دولة حسابك.</p></div></div>
+    <div id="walletPlansList" class="wallet-plans-grid"><div class="wallet-pricing-loading">جاري تحميل الباقات...</div></div>
+  </div>
+</section>
+<script>
+(function(){
+ async function loadPlans(){
+  const box=document.getElementById('walletPlansList'); if(!box)return;
+  try{
+   const r=await fetch('/api/subscriptions/plans',{credentials:'same-origin',cache:'no-store'}); const d=await r.json();
+   const plans=d?.plans||[];
+   if(!plans.length){box.innerHTML='<div class="wallet-pricing-empty">لا توجد باقات منشورة حاليًا.</div>';return;}
+   box.innerHTML=plans.map(p=>`<article class="wallet-plan-card"><div class="wallet-plan-head"><h3>${escPlan(p.name)}</h3><strong>${escPlan(p.formattedLocal||((Number(p.localAmount)||0).toFixed(2)+' '+(p.currency||'')))}</strong></div><div class="wallet-plan-period">شهريًا</div><ul>${(p.features||[]).map(f=>`<li>${escPlan(f)}</li>`).join('')}</ul><button type="button" class="wallet-plan-btn" onclick="subscribePlan('${escPlan(p.id)}')">اشتراك</button></article>`).join('');
+  }catch(e){box.innerHTML='<div class="wallet-pricing-empty">تعذر تحميل الباقات حاليًا.</div>';}
+ }
+ function escPlan(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+ window.subscribePlan=async function(id){
+   if(!id)return;
+   try{const r=await fetch('/api/employer/subscription',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({planId:id})});const d=await r.json();alert(d.message||'تمت معالجة الطلب');}catch(e){alert('تعذر تنفيذ الاشتراك حاليًا');}
+ };
+ loadPlans();
+})();
+</script>
+<style id="wallet-plans-phase32">
+.wallet-plans-section{margin:24px 0 40px}.wallet-plans-section .wallet-section-card{background:#fff;border-radius:18px;padding:22px;box-shadow:0 5px 25px #0000000d}.wallet-plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:16px}.wallet-plan-card{border:1px solid #e1e9ef;border-radius:16px;padding:20px;background:#fbfdff}.wallet-plan-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.wallet-plan-head h3{margin:0;color:#1a4a6e;font-size:20px}.wallet-plan-head strong{font-size:18px;color:#173b52;white-space:nowrap}.wallet-plan-period{font-size:13px;color:#778794;margin:5px 0 12px}.wallet-plan-card ul{margin:0 0 18px;padding-inline-start:20px;color:#526674;line-height:1.9}.wallet-plan-btn{width:100%;border:0;border-radius:12px;background:#1681b4;color:#fff;padding:12px 16px;font:700 16px Tajawal;cursor:pointer}.wallet-plan-btn:hover{filter:brightness(.96)}
+</style>
+</body></html>
+
+
+
+
+<script>
+/* ACCOUNT_NAV_ROLE_AUDIT_FIX_20260816 */
+(function(){
+  'use strict';
+
+  function role(){
+    const b = document.body;
+    return String(
+      b?.dataset?.userRole ||
+      window.currentUser?.role ||
+      window.user?.role ||
+      ''
+    ).toLowerCase();
+  }
+
+  function isSeeker(r){
+    return ['user','job_seeker','seeker','candidate'].includes(r);
+  }
+
+  function makeMenu(){
+    const r = role();
+    const existing = Array.from(document.querySelectorAll(
+      '.user-menu, .profile-menu, .account-menu, .user-dropdown, .profile-dropdown, [class*="user-menu"], [class*="profile-menu"]'
+    ));
+
+    existing.forEach(menu => {
+      const employerLinks = Array.from(menu.querySelectorAll('a[href="/employer"]'));
+      if (isSeeker(r)) employerLinks.forEach(a => (a.closest('li') || a).remove());
+
+      // Never show wallet as a top-level navigation item from the home page.
+      if ((location.pathname === '/' || location.pathname === '') &&
+          !menu.contains(document.activeElement)) {
+        // Keep links inside the menu; this block intentionally does not remove menu items.
+      }
+    });
+
+    // Remove standalone account links only if they are outside a user/account dropdown.
+    if (location.pathname === '/' || location.pathname === '') {
+      document.querySelectorAll('a[href="/profile"],a[href="/employer"],a[href="/wallet"],a[href="/logout"]').forEach(a => {
+        const menu = a.closest('.user-menu,.profile-menu,.account-menu,.user-dropdown,.profile-dropdown,[class*="user-menu"],[class*="profile-menu"]');
+        if (!menu) {
+          const item = a.closest('li,.nav-item,.menu-item') || a;
+          item.remove();
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', makeMenu);
+  } else {
+    makeMenu();
+  }
+})();
+</script>
+
+<!-- STEP9 PAYMENT CENTER -->
+<section id="step9-payment-center" class="wrap" style="padding-top:0;display:none">
+  <div class="balance-card">
+    <h2 style="margin-top:0;color:#1a4a6e">💳 شحن المحفظة والاشتراكات</h2>
+    <p class="muted">اختر إحدى باقات الشحن المعتمدة في المنصة. الأسعار تعرض بعملة دولة حسابك، ولا يوجد إدخال مبلغ حر.</p>
+    <div id="walletTopupPackages" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px">جاري تحميل باقات الشحن...</div>
+    <div id="paymentMsg" class="muted" style="margin-top:12px"></div>
+    <div id="testPayBox" style="display:none;margin-top:10px;padding:12px;border-radius:12px;background:#fff8e1;border:1px solid #f2d27a">
+      <strong>وضع الاختبار:</strong> بعد إنشاء عملية الدفع يمكنك محاكاة نجاحها لاختبار النظام فقط.
+      <button id="testPayBtn" type="button" style="margin-right:8px;padding:8px 12px;border:0;border-radius:8px;background:#8a6100;color:#fff">إكمال الدفع التجريبي</button>
+    </div>
+  </div>
+  <div class="balance-card">
+    <h2 style="margin-top:0;color:#1a4a6e">📦 الباقات المتاحة</h2>
+    <div id="subscriptionPlans" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">جاري تحميل الباقات...</div>
+    <div id="subscriptionMsg" class="muted" style="margin-top:12px"></div>
+  </div>
+  <div class="tx">
+    <h2 style="margin-top:0;color:#1a4a6e">🧾 فواتيري</h2>
+    <div id="myInvoices" class="muted">جاري تحميل الفواتير...</div>
+  </div>
+</section>
+<script>
+(function(){
+  const $=id=>document.getElementById(id); let pendingPayment=null;
+  async function api9(url,opt={}){const r=await fetch(url,{credentials:'same-origin',...opt});let d={};try{d=await r.json()}catch{};if(!r.ok)throw new Error(d?.message||'حدث خطأ');return d}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  async function init(){
+    try{
+      const auth=await api9('/api/check-auth');
+      const role=auth?.user?.role||'';
+      const paymentCenter=document.getElementById('step9-payment-center');
+      if(role==='employer'){ paymentCenter.style.display='block'; } else { paymentCenter.remove(); return; }
+      const cfg=await api9('/api/payments/config');
+      $('testPayBox').style.display=cfg.testCheckoutAllowed?'block':'none';
+
+      // باقات الشحن ثابتة من النظام، ولا يوجد إدخال مبلغ حر للمستخدم.
+      const topups=await api9('/api/wallet/purchase-options');
+      $('walletTopupPackages').innerHTML=(topups.packages||[]).map(p=>`<div style="border:1px solid #e1e8ef;border-radius:14px;padding:16px;background:#fff;text-align:center"><div style="font-size:13px;color:#6b7a8a">${esc(p.label||'باقة شحن')}</div><div style="font-size:22px;font-weight:800;color:#1a4a6e;margin:6px 0">${esc(p.formattedLocal)}</div><button type="button" data-topup="${esc(p.usd)}" style="padding:9px 14px;border:0;border-radius:9px;background:#1a4a6e;color:#fff;font-weight:800;cursor:pointer">اختيار الباقة</button></div>`).join('');
+      $('walletTopupPackages').querySelectorAll('[data-topup]').forEach(b=>b.addEventListener('click',async()=>{
+        try{
+          const usd=Number(b.dataset.topup);
+          const d=await api9('/api/wallet/checkout',{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':'wallet-package-'+usd+'-'+Date.now()},body:JSON.stringify({usd,package:String(usd)})});
+          pendingPayment=d.payment?.paymentId;
+          $('paymentMsg').textContent=d.message||'تم إنشاء عملية الدفع';
+          $('testPayBox').style.display=d.testCompletionAllowed?'block':'none';
+        }catch(e){$('paymentMsg').textContent=e.message}
+      }));
+
+      const plans=await api9('/api/subscriptions/plans');
+      $('subscriptionPlans').innerHTML=(plans.plans||[]).map(p=>`<div style="border:1px solid #e1e8ef;border-radius:14px;padding:16px;background:#fff"><h3 style="margin-top:0">${esc(p.name)}</h3><div style="font-size:24px;font-weight:800">${esc(p.formattedLocal||((Number(p.monthlyUsd)||0).toFixed(2)+' USD'))} / شهر</div><ul>${(p.features||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul><button type="button" data-plan="${esc(p.id)}" style="padding:9px 12px;border:0;border-radius:9px;background:#1a4a6e;color:#fff;font-weight:800">تفعيل الباقة</button></div>`).join('');
+      $('subscriptionPlans').querySelectorAll('[data-plan]').forEach(b=>b.addEventListener('click',async()=>{try{const d=await api9('/api/employer/subscription/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({planId:b.dataset.plan})});$('subscriptionMsg').textContent=d.message||'تم تفعيل الاشتراك';loadInvoices();load();}catch(e){$('subscriptionMsg').textContent=e.message}}));
+      loadInvoices();
+    }catch(e){$('paymentMsg').textContent=e.message}
+  }
+  $('testPayBtn')?.addEventListener('click',async()=>{if(!pendingPayment)return;try{const d=await api9('/api/wallet/checkout/'+encodeURIComponent(pendingPayment)+'/test-complete',{method:'POST'});$('paymentMsg').textContent=d.success?'تم إكمال الدفع التجريبي وإضافة الرصيد.':'تعذر إكمال الدفع';load();loadInvoices();}catch(e){$('paymentMsg').textContent=e.message}});
+  async function loadInvoices(){try{const d=await api9('/api/employer/invoices');const arr=d.invoices||[];$('myInvoices').innerHTML=arr.length?arr.map(x=>`<div class="tx-item"><div><strong>${esc(x.invoiceNumber||x.invoiceId)}</strong><div class="muted" style="font-size:12px">${esc(x.invoiceType||'payment')} — ${esc(x.createdAt||'')}</div></div><strong>${esc(x.formattedLocal||x.formattedPrice||((Number(x.amount)||0).toFixed(2)+' '+(x.currency||'')))}</strong></div>`).join(''):'لا توجد فواتير بعد.'}catch(e){$('myInvoices').textContent='تعذر تحميل الفواتير.'}}
+  init();
+})();
+</script>

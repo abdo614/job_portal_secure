@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="{{ site_lang|default("en") }}" dir="{{ site_dir|default("ltr") }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اتصل بنا - منصة التوظيف العربية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/css/header.css" />
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fc; color: #1a2a3a; direction: rtl; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        .page-header { background: linear-gradient(135deg, #1a4a6e, #2a6a9e); color: #fff; padding: 60px 0; text-align: center; }
+        .page-header h1 { font-size: 40px; margin-bottom: 10px; }
+        .page-header p { font-size: 18px; opacity: 0.9; }
+        
+        .contact-section { padding: 60px 0; }
+        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
+        .contact-info { background: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .contact-info h2 { color: #1a4a6e; margin-bottom: 20px; }
+        .contact-item { display: flex; align-items: center; gap: 15px; padding: 15px 0; border-bottom: 1px solid #e8edf3; }
+        .contact-item:last-child { border-bottom: none; }
+        .contact-item i { font-size: 24px; color: #1a4a6e; width: 40px; text-align: center; }
+        .contact-item div h4 { font-size: 16px; color: #1a2a3a; }
+        .contact-item div p { color: #6b7a8a; font-size: 14px; }
+        
+        .contact-form { background: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .contact-form h2 { color: #1a4a6e; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; color: #1a2a3a; margin-bottom: 5px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px 16px; border: 2px solid #e0e6ed; border-radius: 12px; font-size: 15px; transition: 0.3s; background: #f8fafc; font-family: inherit; }
+        .form-group input:focus, .form-group textarea:focus { border-color: #1a4a6e; outline: none; box-shadow: 0 0 0 4px rgba(26,74,110,0.12); }
+        .form-group textarea { min-height: 120px; resize: vertical; }
+        .btn-send { background: linear-gradient(135deg, #1a4a6e, #0d2b3e); color: #fff; border: none; padding: 14px 40px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .btn-send:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(26,74,110,0.35); }
+        .btn-send i { margin-left: 8px; }
+        
+        .social-links { margin-top: 30px; display: flex; gap: 15px; }
+        .social-links a { width: 50px; height: 50px; border-radius: 50%; background: #f0f2f5; display: flex; align-items: center; justify-content: center; color: #1a4a6e; font-size: 22px; transition: 0.3s; text-decoration: none; }
+        .social-links a:hover { background: #1a4a6e; color: #fff; transform: translateY(-3px); }
+        
+        .footer { background: #0d2b3e; color: #b0c4d9; padding: 30px 0; margin-top: 40px; }
+        .footer .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .footer-social a { color: #b0c4d9; margin: 0 10px; font-size: 20px; transition: 0.3s; }
+        .footer-social a:hover { color: #ffd700; }
+        
+        @media (max-width: 768px) {
+            .header .container { flex-direction: column; }
+            .contact-grid { grid-template-columns: 1fr; }
+            .page-header h1 { font-size: 28px; }
+        }
+    </style>
+<style>.site-logo-white,.logo h1,.logo span{color:#fff!important;text-decoration:none}</style></head>
+<body>
+    {% include 'header.html' %}
+
+<div class="page-header">
+        <div class="container">
+            <h1>📞 اتصل بنا</h1>
+            <p id="contactPageSubtitle">نحن هنا لمساعدتك! تواصل معنا في أي وقت</p>
+        </div>
+    </div>
+
+    <section class="contact-section">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-info">
+                    <h2 id="contactInfoTitle"><i class="fas fa-info-circle"></i> معلومات الاتصال</h2>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h4>العنوان</h4>
+                            <p><span id="contactAddress">الرياض، المملكة العربية السعودية</span></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <h4>الهاتف</h4>
+                            <p><span id="contactPhone">+966 5XXXX XXXX</span></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4>البريد الإلكتروني</h4>
+                            <p><span id="contactEmail">info@arabjobs.com</span></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h4>ساعات العمل</h4>
+                            <p><span id="contactHours">الأحد - الخميس: 9:00 ص - 6:00 م</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div class="contact-form">
+                    <h2 id="contactFormTitle"><i class="fas fa-paper-plane"></i> أرسل رسالة</h2>
+                    <form id="contactForm" onsubmit="sendMessage(event)">
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> الاسم الكامل</label>
+                            <input type="text" id="name" placeholder="أدخل اسمك" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
+                            <input type="email" id="email" placeholder="example@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-tag"></i> الموضوع</label>
+                            <input type="text" id="subject" placeholder="موضوع الرسالة" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-comment"></i> الرسالة</label>
+                            <textarea id="message" placeholder="اكتب رسالتك هنا..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn-send">
+                            <i class="fas fa-paper-plane"></i> إرسال الرسالة
+                        </button>
+                    </form>
+                    <div id="successMsg" style="display:none;margin-top:20px;padding:15px;background:#d4edda;color:#155724;border-radius:12px;text-align:center;">
+                        <i class="fas fa-check-circle"></i> تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p><span id="contactFooter">© 2026 منصة التوظيف العربية - جميع الحقوق محفوظة</span></p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function sendMessage(event) {
+            event.preventDefault();
+            document.getElementById('successMsg').style.display = 'block';
+            document.getElementById('contactForm').reset();
+            setTimeout(() => {
+                document.getElementById('successMsg').style.display = 'none';
+            }, 5000);
+        }
+    </script>
+
+<script>
+(async function(){
+ try{
+  const [settings, contact] = await Promise.all([
+    fetch('/api/settings/general').then(r=>r.json()),
+    fetch('/api/content/contact').then(r=>r.json()).catch(()=>null)
+  ]);
+  if(settings){
+    document.title = settings.site_name ? `اتصل بنا - ${settings.site_name}` : document.title;
+    const set=(id,v)=>{const e=document.getElementById(id); if(e && v!=null) e.textContent=v};
+    set('contactAddress', settings.address);
+    set('contactPhone', settings.contact_phone);
+    set('contactEmail', settings.contact_email);
+    set('contactHours', settings.working_hours);
+    set('contactFooter', settings.footer_text);
+  }
+  if(contact){
+    const set=(id,v)=>{const e=document.getElementById(id); if(e && v!=null) e.textContent=v};
+    set('contactPageSubtitle', contact.subtitle);
+    set('contactInfoTitle', contact.contact_title);
+    set('contactFormTitle', contact.form_title);
+  }
+ }catch(e){ console.warn('contact cms load failed',e); }
+})();
+</script>
+
+<!-- مصادقة الهيدر موحّدة في templates/header.html -->
+</body>
+</html>

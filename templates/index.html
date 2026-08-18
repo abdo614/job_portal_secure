@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="{{ site_lang|default("en") }}" dir="{{ site_dir|default("ltr") }}">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-site-name>منصة التوظيف العربية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="/static/css/header.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
+    <style>
+        .home-search{display:grid;grid-template-columns:1.5fr 1fr auto;gap:10px;margin:20px auto;max-width:900px;position:relative;z-index:20}.home-search *{box-sizing:border-box}
+        .home-search-field{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:0 14px;color:#1a4a6e}
+        .home-search-field input{width:100%;border:0;outline:0;padding:15px 4px;font:inherit;background:transparent}
+        
+        .home-search-field{position:relative}.home-suggestions{position:absolute;top:calc(100% + 8px);left:0;right:0;background:#fff;border-radius:14px;box-shadow:0 18px 45px rgba(0,0,0,.18);overflow:hidden;z-index:80;max-height:310px;overflow-y:auto;display:none;border:1px solid #e8edf3}.home-suggestions.show{display:block}.home-suggestion{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;color:#17364d;border-bottom:1px solid #eef2f5;text-align:start}.home-suggestion:last-child{border-bottom:0}.home-suggestion:hover,.home-suggestion.active{background:#f4f8fb}.home-suggestion .icon{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:#eef5fa;color:#1a4a6e;flex:0 0 30px}.home-suggestion small{display:block;color:#7b8794;font-size:11px;margin-top:2px}.home-suggestion-empty{padding:14px;color:#7b8794;text-align:center}
+        @media(max-width:760px){.home-search-overlay{bottom:58px;width:calc(100% - 24px)}.home-search{grid-template-columns:1fr;gap:8px}.home-search-button{min-height:48px}.home-suggestions{max-height:240px}}
+
+        .home-search-button{border:0;border-radius:12px;padding:0 24px;background:#ffd700;color:#17364d;font:700 15px inherit;cursor:pointer;white-space:nowrap}
+
+        .home-search-overlay{position:absolute;left:50%;bottom:72px;transform:translateX(-50%);width:min(900px,calc(100% - 40px));margin:0;z-index:30;filter:drop-shadow(0 12px 28px rgba(0,0,0,.18));}
+        .home-search-overlay .home-search-button{min-height:52px;}
+        .home-search-overlay .home-search-field{min-height:52px;}
+        @media(max-width:760px){.home-search-overlay{bottom:58px;width:calc(100% - 24px);}.home-search-overlay .home-search-field,.home-search-overlay .home-search-button{min-height:50px;}}
+        @media(max-width:760px){.home-search{grid-template-columns:1fr}.home-search-button{padding:14px}}
+
+        /* ============================================
+           التصميم الكامل - منصة التوظيف العربية
+           ============================================ */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Tajawal', 'Segoe UI', sans-serif;
+            background: #f4f7fc;
+            color: #1a2a3a;
+            direction: rtl;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ===== الشريط العلوي ===== */
+        .top-bar {
+            background: rgba(255,215,0,0.15);
+            color: #ffd700;
+            padding: 8px 0;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255,215,0,0.1);
+        }
+
+        .top-bar i {
+            margin-left: 8px;
+        }
+
+        /* ===== قسم البانر / السلايدر ===== */
+        .hero {
+            color: #fff;
+            padding: 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ===== السلايدر ===== */
+        .slider-container {
+            position: relative;
+            width: 100%;
+            height: 550px;
+            overflow: hidden;
+        }
+
+        .slider-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            z-index: 0;
+            cursor: pointer;
+        }
+
+        .slider-slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .slider-slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(13,43,62,0.85) 0%, rgba(26,74,110,0.7) 50%, rgba(42,106,158,0.6) 100%);
+        }
+
+        .slider-slide::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 60%;
+            height: 200%;
+            background: rgba(255,215,0,0.05);
+            transform: rotate(30deg);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .slider-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            padding: 40px 20px;
+        }
+
+        .slider-content h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+
+        .slider-content h1 span {
+            color: #ffd700;
+        }
+
+        .slider-content p {
+            font-size: 20px;
+            opacity: 0.95;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            line-height: 1.8;
+            text-shadow: 0 1px 10px rgba(0,0,0,0.3);
+        }
+
+        .slider-content .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .slider-content .btn-primary {
+            background: #ffd700;
+            color: #0d2b3e;
+            padding: 14px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .slider-content .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255,215,0,0.3);
+        }
+
+        .slider-content .btn-secondary {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            padding: 14px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 18px;
+            transition: 0.3s;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .slider-content .btn-secondary:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-3px);
+        }
+
+        /* أسهم التنقل في السلايدر */
+        .slider-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: #fff;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .slider-arrow:hover {
+            background: rgba(255,215,0,0.3);
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        .slider-arrow.prev {
+            right: 20px;
+        }
+
+        .slider-arrow.next {
+            left: 20px;
+        }
+
+        /* نقاط التنقل في السلايدر */
+        .slider-dots {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .slider-dots .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .slider-dots .dot.active {
+            background: #ffd700;
+            border-color: #ffd700;
+            transform: scale(1.3);
+        }
+
+        /* ===== إحصائيات البانر (مطابقة تماماً لصفحة من نحن) ===== */
+        .stats-section-wrapper {
+            position: relative;
+            background: #1a4a6e;
+            width: 100%;
+            margin: 0;
+            padding: 40px 0 50px;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 48px;
+            color: #ffd700;
+            font-weight: 800;
+        }
+
+        .stat-item p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        /* إخفاء نقاط التنقل في السلايدر */
+        .slider-dots {
+            display: none !important;
+        }
+
+        /* ===== رسالة الترحيب ===== */
+        .welcome-msg {
+            background: rgba(255,215,0,0.15);
+            color: #ffd700;
+            padding: 12px 25px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px auto 0;
+            max-width: 600px;
+            font-weight: 600;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+
+        .welcome-msg i {
+            margin-left: 8px;
+        }
+
+        /* ===== قسم الميزات ===== */
+        .features-section {
+            padding: 60px 0;
+            background: #fff;
+        }
+
+        .features-section h2 {
+            text-align: center;
+            color: #1a4a6e;
+            font-size: 32px;
+            margin-bottom: 40px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            transition: 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #1a4a6e;
+            box-shadow: 0 10px 40px rgba(26,74,110,0.1);
+        }
+
+        .feature-card i {
+            font-size: 40px;
+            color: #1a4a6e;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            color: #1a2a3a;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: #6b7a8a;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ===== الوظائف ===== */
+        .jobs-section {
+            padding: 60px 0;
+            background: #f8fafc;
+        }
+
+        .jobs-section .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .jobs-section .section-header h2 {
+            color: #1a4a6e;
+            font-size: 28px;
+        }
+
+        .jobs-section .section-header a {
+            color: #1a4a6e;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .jobs-section .section-header a:hover {
+            text-decoration: underline;
+        }
+
+        .quick-access-section {
+            border-bottom: 1px solid #e8edf3;
+        }
+
+        .quick-access-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 25px;
+        }
+
+        .job-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            border-right: 4px solid #1a4a6e;
+            transition: 0.3s;
+        }
+
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .job-card .job-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0d2b3e;
+        }
+
+        .job-card .job-company {
+            color: #1a4a6e;
+            font-weight: 600;
+            margin: 4px 0;
+        }
+
+        .job-card .job-company i {
+            margin-left: 6px;
+        }
+
+        .job-card .job-location {
+            color: #6b7a8a;
+            font-size: 14px;
+        }
+
+        .job-card .job-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .job-card .job-tag {
+            background: #eef3f9;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            color: #1a4a6e;
+            font-weight: 500;
+        }
+
+        .job-card .job-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #e8edf3;
+        }
+
+        .job-card .job-salary {
+            font-weight: 600;
+            color: #2e7d32;
+            font-size: 15px;
+        }
+
+        .job-card .job-salary i {
+            margin-left: 4px;
+        }
+
+        .job-card .apply-btn {
+            background: #1a4a6e;
+            color: #fff;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .job-card .apply-btn:hover {
+            background: #0d2b3e;
+            transform: scale(1.04);
+        }
+
+        .job-card .apply-btn.applied {
+            background: #2e7d32;
+            cursor: default;
+        }
+
+        .job-card .apply-btn.applied:hover {
+            transform: none;
+        }
+
+        .job-card .favorite-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #ccc;
+            transition: 0.3s;
+        }
+
+        .job-card .favorite-btn.active {
+            color: #ff4757;
+        }
+
+        .job-card .favorite-btn:hover {
+            transform: scale(1.2);
+        }
+
+        /* ===== آراء العملاء ===== */
+        .testimonials-section {
+            padding: 60px 0;
+            background: #fff;
+        }
+
+        .testimonials-section h2 {
+            text-align: center;
+            color: #1a4a6e;
+            font-size: 32px;
+            margin-bottom: 40px;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .testimonial-card {
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 16px;
+            transition: 0.3s;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+        }
+
+        .testimonial-card .stars {
+            color: #f9a825;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .testimonial-card .comment {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #1a2a3a;
+            margin-bottom: 15px;
+        }
+
+        .testimonial-card .author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .testimonial-card .author .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #1a4a6e;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .testimonial-card .author .info h4 {
+            font-size: 16px;
+            color: #1a2a3a;
+        }
+
+        .testimonial-card .author .info p {
+            font-size: 13px;
+            color: #6b7a8a;
+        }
+
+        /* ===== الفوتر ===== */
+        .footer {
+            background: #0d2b3e;
+            color: #b0c4d9;
+            padding: 50px 0 30px;
+        }
+
+        .footer .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+        }
+
+        .footer h4 {
+            color: #fff;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .footer p {
+            font-size: 14px;
+            line-height: 1.8;
+            opacity: 0.8;
+        }
+
+        .footer a {
+            color: #b0c4d9;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .footer a:hover {
+            color: #ffd700;
+            padding-right: 5px;
+        }
+
+        .footer .social-links {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .footer .social-links a {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            padding: 0;
+        }
+
+        .footer .social-links a:hover {
+            background: #ffd700;
+            color: #0d2b3e;
+            padding: 0;
+        }
+
+        .footer .footer-bottom {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            margin-top: 30px;
+        }
+
+        .footer .footer-bottom p {
+            font-size: 13px;
+            opacity: 0.6;
+        }
+
+        /* ===== الإشعارات ===== */
+        .notification {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 600;
+            z-index: 9999;
+            transform: translateX(-120%);
+            transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.2);
+            max-width: 400px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #2e7d32;
+        }
+
+        .notification.error {
+            background: #c62828;
+        }
+
+        .notification.info {
+            background: #1a4a6e;
+        }
+
+        /* ===== النوافذ المنبثقة ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-content .close-btn {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #6b7a8a;
+            background: none;
+            border: none;
+            transition: 0.3s;
+        }
+
+        .modal-content .close-btn:hover {
+            color: #c62828;
+            transform: rotate(90deg);
+        }
+
+        .modal-content h2 {
+            color: #1a4a6e;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-content h2 i {
+            margin-left: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .form-group label i {
+            margin-left: 6px;
+            color: #1a4a6e;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: 0.3s;
+            background: #f8fafc;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: #1a4a6e;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26,74,110,0.15);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group .password-input {
+            position: relative;
+        }
+
+        .form-group .password-input input {
+            padding-left: 40px;
+        }
+
+        .form-group .toggle-password {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6b7a8a;
+        }
+
+        .form-group .toggle-password:hover {
+            color: #1a4a6e;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 4px;
+            color: #6b7a8a;
+            font-size: 12px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a4a6e, #0d2b3e);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(26,74,110,0.35);
+        }
+
+        .btn-submit i {
+            margin-left: 8px;
+        }
+
+        .form-switch {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #6b7a8a;
+        }
+
+        .form-switch a {
+            color: #1a4a6e;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .form-switch a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== التجاوب ===== */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+            .footer .container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .slider-container {
+                height: 450px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 0;
+            }
+            .hero h1 {
+                font-size: 28px;
+            }
+            .hero p {
+                font-size: 16px;
+            }
+            .hero .btn-primary,
+            .hero .btn-secondary,
+            .slider-content .btn-primary,
+            .slider-content .btn-secondary {
+                padding: 12px 25px;
+                font-size: 15px;
+            }
+            .hero-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            .hero-stats .stat-item h3 {
+                font-size: 28px;
+            }
+            .jobs-grid {
+                grid-template-columns: 1fr;
+            }
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+            .footer .container {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .modal-content {
+                padding: 25px;
+            }
+            .slider-container {
+                height: 400px;
+            }
+            .slider-content h1 {
+                font-size: 26px;
+            }
+            .slider-content p {
+                font-size: 15px;
+            }
+            .slider-arrow {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+            .slider-arrow.prev {
+                right: 10px;
+            }
+            .slider-arrow.next {
+                left: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 22px;
+            }
+            .hero-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .hero-stats .stat-item h3 {
+                font-size: 22px;
+            }
+            .hero-stats .stat-item p {
+                font-size: 13px;
+            }
+            .nav a {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
+            .nav .auth-btn {
+                padding: 6px 16px;
+                font-size: 13px;
+            }
+            .jobs-section .section-header h2 {
+                font-size: 22px;
+            }
+            .slider-container {
+                height: 350px;
+            }
+            .slider-content h1 {
+                font-size: 22px;
+            }
+            .slider-content p {
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+            .slider-content .btn-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .slider-content .btn-primary,
+            .slider-content .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+            .slider-dots {
+                bottom: 15px;
+            }
+        }
+    </style>
+<style>.site-logo-white,.logo h1,.logo span{color:#fff!important;text-decoration:none}</style></head>
+<body data-user-role="{{ current_user.role if current_user else (user.role if user else "") }}">
+
+    <!-- ===== الإشعارات ===== -->
+    <div id="notification" class="notification"></div>
+
+    <!-- ===== الهيدر الموحد: المصدر المشترك لجميع الصفحات ===== -->
+    {% include 'header.html' %}
+    
+    <!-- ===== الشريط العلوي ===== -->
+    <div class="top-bar" id="topBar">
+        <i class="fas fa-megaphone"></i>
+        <span id="topBarText">{{ trans('أكثر من 1000 وظيفة متاحة الآن في جميع الدول العربية') }}</span>
+    </div>
+
+    <!-- ===== البانر / السلايدر ===== -->
+    <section class="hero">
+        <div class="slider-container" id="sliderContainer">
+            <!-- سيتم تحميل السلايدات من API /api/slider -->
+            <div class="slider-slide active" style="background-image:url('https://placehold.co/1200x400/1a4a6e/fff?text=وظائف+تقنية')">
+                <div class="slider-content">
+                    <h1>{{ trans('وظيفة أحلامك') }} <span>{{ trans('تنتظرك') }}</span></h1>
+                    <p>{{ trans('منصة التوظيف العربية تربط بين الباحثين عن عمل وأفضل الشركات في العالم العربي. انضم إلى آلاف المرشحين الذين وجدوا وظائفهم المثالية من خلالنا.') }}</p>
+<div class="btn-group">
+                        <a href="/jobs" class="btn-primary"><i class="fas fa-search"></i> {{ trans('استكشف الوظائف') }}</a>
+                        <a href="#" class="btn-secondary" onclick="return openAuthModal('registerModal', event)"><i class="fas fa-user-plus"></i> {{ trans('سجل الآن') }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- أسهم التنقل -->
+        <button class="slider-arrow prev" onclick="prevSlide()" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
+        <button class="slider-arrow next" onclick="nextSlide()" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
+
+        <!-- نقاط التنقل -->
+        <div class="slider-dots" id="sliderDots"></div>
+
+        <!-- إحصائيات البانر -->
+        <div class="stats-section-wrapper" style="position:relative;z-index:5;">
+            <div class="container">
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <h3 id="statJobs">0</h3>
+                        <p>{{ trans('وظيفة متاحة') }}</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3 id="statCompanies">0</h3>
+                        <p>{{ trans('شركة مسجلة') }}</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3 id="statUsers">0</h3>
+                        <p>{{ trans('باحث عن عمل') }}</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3 id="statCountries">0</h3>
+                        <p>{{ trans('دولة عربية') }}</p>
+                    </div>
+                </div>
+
+                <!-- رسالة الترحيب -->
+                <div id="welcomeMessage" style="display:none;" class="welcome-msg">
+                    <i class="fas fa-smile"></i> مرحباً بك في منصة التوظيف العربية
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== الميزات ===== -->
+    <section class="features-section" id="featuresSection">
+        <div class="container">
+            <h2>{{ trans('لماذا تختارنا؟') }}</h2>
+            <div class="features-grid" id="featuresContainer">
+                <!-- سيتم تحميل الميزات من API -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== وصول سريع للمستخدم ===== -->
+    <section class="quick-access-section" id="quickAccessSection" style="display:none; padding: 40px 0; background: #fff;">
+        <div class="container">
+            <h2 style="text-align: center; color: #1a4a6e; font-size: 28px; margin-bottom: 30px;">
+                <i class="fas fa-rocket"></i> {{ trans('مرحباً بك في منصتك') }}
+            </h2>
+            <div class="quick-access-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+                <a href="/favorites" class="quick-access-card" style="background: linear-gradient(135deg, #fff5f5, #fff); border: 2px solid #ff4757; border-radius: 16px; padding: 24px; text-decoration: none; color: inherit; transition: 0.3s; display: block;">
+                    <div style="font-size: 40px; color: #ff4757; margin-bottom: 12px;">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3 style="color: #0d2b3e; font-size: 20px; margin-bottom: 8px;">{{ trans('المفضلة') }}</h3>
+                    <p style="color: #6b7a8a; font-size: 14px;">{{ trans('الوظائف التي أضفتها إلى المفضلة') }}</p>
+                </a>
+                
+                <a href="/jobs" class="quick-access-card" style="background: linear-gradient(135deg, #f5fff8, #fff); border: 2px solid #2e7d32; border-radius: 16px; padding: 24px; text-decoration: none; color: inherit; transition: 0.3s; display: block;">
+                    <div style="font-size: 40px; color: #2e7d32; margin-bottom: 12px;">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3 style="color: #0d2b3e; font-size: 20px; margin-bottom: 8px;">{{ trans('ابحث عن وظيقة') }}</h3>
+                    <p style="color: #6b7a8a; font-size: 14px;">{{ trans('اكتشف أحدث الفرص الوظيفية') }}</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== الوظائف ===== -->
+    <section class="jobs-section">
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-briefcase"></i> {{ trans('أحدث الوظائف') }}</h2>
+                <a href="/jobs">{{ trans('عرض جميع الوظائف') }} <i class="fas fa-arrow-left"></i></a>
+            </div>
+            <div class="jobs-grid" id="jobsContainer">
+                <!-- سيتم تحميل الوظائف من API -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== آخر الأخبار ===== -->
+    <section class="news-section" style="padding:60px 0;background:#fff;">
+        <div class="container">
+            <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;flex-wrap:wrap;gap:15px;">
+                <h2 style="color:#1a4a6e;font-size:28px;"><i class="fas fa-newspaper" style="margin-left:8px;"></i> {{ trans('آخر الأخبار') }}</h2>
+                <a href="/news" style="background:#1a4a6e;color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px;font-weight:700;">{{ trans('عرض جميع الأخبار') }}</a>
+            </div>
+            <div class="news-grid" id="homeNewsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;"></div>
+        </div>
+    </section>
+
+    <!-- ===== آراء العملاء ===== -->
+    <section class="testimonials-section">
+        <div class="container">
+            <h2><i class="fas fa-star" style="color:#f9a825;"></i> {{ trans('آراء عملائنا') }}</h2>
+            <div class="testimonials-grid" id="testimonialsContainer">
+                <!-- سيتم تحميل الآراء من API -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== معلومات الاتصال ===== -->
+    <section class="contact-info-section" style="padding:40px 0 60px;">
+        <div class="container">
+            <div style="background:linear-gradient(135deg,#ffffff,#f6f9fc);border:1px solid #e2e8f0;border-radius:22px;box-shadow:0 10px 30px rgba(0,0,0,0.06);padding:28px 30px;">
+                <h2 style="margin-bottom:16px;color:#0d2b3e;font-size:28px;"><i class="fas fa-envelope-open-text" style="margin-left:8px;color:#1a4a6e;"></i> اتصل بنا</h2>
+                <p style="margin-bottom:18px;color:#556273;line-height:1.8;">نحن هنا لمساعدتك في أي وقت، وتواصل معنا مباشرة عبر معلومات الاتصال التالية:</p>
+                <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+                    <div style="background:#fff;border-radius:14px;padding:14px 16px;border:1px solid #edf2f7;">
+                        <div style="color:#1a4a6e;font-weight:700;margin-bottom:6px;"><i class="fas fa-map-marker-alt" style="margin-left:6px;"></i> العنوان</div>
+                        <div id="homeContactAddress" style="color:#334155;">الرياض، المملكة العربية السعودية</div>
+                    </div>
+                    <div style="background:#fff;border-radius:14px;padding:14px 16px;border:1px solid #edf2f7;">
+                        <div style="color:#1a4a6e;font-weight:700;margin-bottom:6px;"><i class="fas fa-phone" style="margin-left:6px;"></i> الهاتف</div>
+                        <div id="homeContactPhone" style="color:#334155;">+966 5XXXX XXXX</div>
+                    </div>
+                    <div style="background:#fff;border-radius:14px;padding:14px 16px;border:1px solid #edf2f7;">
+                        <div style="color:#1a4a6e;font-weight:700;margin-bottom:6px;"><i class="fas fa-envelope" style="margin-left:6px;"></i> البريد الإلكتروني</div>
+                        <div id="homeContactEmail" style="color:#334155;">info@arabjobs.com</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== الفوتر ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div>
+                <h4><i class="fas fa-briefcase"></i> منصة التوظيف</h4>
+                <p>منصة التوظيف العربية هي منصة رائدة تربط بين الباحثين عن عمل وأفضل الشركات في العالم العربي.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4>روابط سريعة</h4>
+                <a href="/">الرئيسية</a>
+                <a href="/jobs">الوظائف</a>
+                <a href="/about">من نحن</a>
+                <a href="/contact">اتصل بنا</a>
+            </div>
+            <div>
+                <h4>معلومات</h4>
+                <a href="#">الشروط والأحكام</a>
+                <a href="#">سياسة الخصوصية</a>
+                <a href="/faq">الأسئلة الشائعة</a>
+                <a href="#">المساعدة</a>
+            </div>
+            <div>
+                <h4>اتصل بنا</h4>
+                <p><i class="fas fa-map-marker-alt"></i> <span id="footerContactAddress">الرياض، المملكة العربية السعودية</span></p>
+                <p><i class="fas fa-phone"></i> <span id="footerContactPhone">+966 5XXXX XXXX</span></p>
+                <p><i class="fas fa-envelope"></i> <span id="footerContactEmail">info@arabjobs.com</span></p>
+            </div>
+            <div class="footer-bottom">
+                <p id="footerText">© 2026 منصة التوظيف العربية. جميع الحقوق محفوظة. جميع البيانات مشفرة 🔐</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===== نافذة تسجيل الدخول ===== -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('loginModal')">&times;</button>
+            <h2><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</h2>
+            <form id="loginForm" onsubmit="login(event)">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
+                    <input type="email" id="loginEmail" placeholder="example@email.com" required />
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> كلمة المرور</label>
+                    <div class="password-input">
+                        <input type="password" id="loginPassword" placeholder="••••••••" required />
+                        <i class="fas fa-eye toggle-password" onclick="togglePassword('loginPassword', this)"></i>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit"><i class="fas fa-sign-in-alt"></i> دخول</button>
+                <p style="text-align:center;margin:10px 0"><a href="#" onclick="openModal('forgotPasswordModal');return false">نسيت كلمة المرور؟</a></p><p class="form-switch">ليس لديك حساب؟ <a onclick="switchToRegister()">سجل الآن</a></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== نافذة التسجيل ===== -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('registerModal')">&times;</button>
+            <h2><i class="fas fa-user-plus"></i> إنشاء حساب جديد</h2>
+            <form id="registerForm" onsubmit="register(event)">
+                <div class="form-group">
+                    <label><i class="fas fa-user-tie"></i> نوع الحساب</label>
+                    <select id="regRole" required onchange="toggleEmployerFields()">
+                        <option value="job_seeker">باحث عن عمل — أبحث عن فرصة مناسبة</option>
+                        <option value="employer">صاحب عمل — أبحث عن كفاءات وموظفين</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> الاسم الأول</label>
+                        <input type="text" id="regFirstName" placeholder="أحمد" required />
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> الاسم الأخير</label>
+                        <input type="text" id="regLastName" placeholder="محمد" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
+                    <input type="email" id="regEmail" placeholder="example@email.com" required />
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> رقم الهاتف</label>
+                    <div style="display:flex;gap:6px;direction:ltr">
+                        <select id="regPhoneCode" style="width:105px"><option value="">+--</option></select>
+                        <input type="tel" id="regPhone" placeholder="5XXXXXXXX" style="flex:1" />
+                    </div>
+                    <small id="phoneGeoHint" style="color:#71808e">سيتم اقتراح رمز الدولة حسب موقع اتصالك بالإنترنت.</small>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> كلمة المرور</label>
+                    <div class="password-input">
+                        <input type="password" id="regPassword" placeholder="••••••••" required minlength="8" />
+                        <i class="fas fa-eye toggle-password" onclick="togglePassword('regPassword', this)"></i>
+                    </div>
+                    <small>يجب أن تحتوي على 8 أحرف، حرف كبير، حرف صغير، رقم ورمز خاص</small>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> تأكيد كلمة المرور</label>
+                    <input type="password" id="regConfirmPassword" placeholder="••••••••" required />
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-briefcase"></i> المجال المهني</label>
+                    <select id="regCategory">
+                        <option value="">اختر المجال</option>
+                        <option value="تقنية">💻 تقنية المعلومات</option>
+                        <option value="هندسة">🏗️ هندسة</option>
+                        <option value="طب">🩺 طب وصحة</option>
+                        <option value="تعليم">📚 تعليم</option>
+                        <option value="مالية">💰 مالية ومحاسبة</option>
+                        <option value="تسويق">📊 تسويق ومبيعات</option>
+                        <option value="إدارة">👔 إدارة أعمال</option>
+                        <option value="خدمة">🤝 خدمة عملاء</option>
+                        <option value="قانون">⚖️ قانون</option>
+                        <option value="فنون">🎨 فنون وتصميم</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-globe"></i> الدولة</label>
+                    <select id="regCountry">
+                        <option value="">اختر الدولة</option>
+                        <option value="السعودية">🇸🇦 السعودية</option>
+                        <option value="مصر">🇪🇬 مصر</option>
+                        <option value="الإمارات">🇦🇪 الإمارات</option>
+                        <option value="الكويت">🇰🇼 الكويت</option>
+                        <option value="قطر">🇶🇦 قطر</option>
+                        <option value="عُمان">🇴🇲 عُمان</option>
+                        <option value="البحرين">🇧🇭 البحرين</option>
+                        <option value="الأردن">🇯🇴 الأردن</option>
+                        <option value="لبنان">🇱🇧 لبنان</option>
+                        <option value="المغرب">🇲🇦 المغرب</option>
+                        <option value="الجزائر">🇩🇿 الجزائر</option>
+                        <option value="تونس">🇹🇳 تونس</option>
+                        <option value="ليبيا">🇱🇾 ليبيا</option>
+                        <option value="السودان">🇸🇩 السودان</option>
+                        <option value="فلسطين">🇵🇸 فلسطين</option>
+                        <option value="سوريا">🇸🇾 سوريا</option>
+                        <option value="العراق">🇮🇶 العراق</option>
+                        <option value="اليمن">🇾🇪 اليمن</option>
+                        <option value="تركيا">🇹🇷 تركيا</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label><i class="fas fa-city"></i> المدينة</label><select id="regCity"><option value="">اختر المدينة</option></select></div>
+                    <div class="form-group"><label><i class="fas fa-location-dot"></i> الحي / المنطقة</label><select id="regNeighborhood"><option value="">اختر الحي</option></select></div>
+                </div>
+                <div id="employerFields" style="display:none">
+                    <div class="form-group"><label><i class="fas fa-building"></i> اسم المنشأة</label><input id="regCompanyName" placeholder="اسم الشركة أو المنشأة" /></div>
+                    <div class="form-group"><label><i class="fas fa-industry"></i> نوع النشاط</label><input id="regCompanyType" placeholder="مثال: تقنية، مقاولات، تجارة" /></div>
+                    <div class="form-group"><label><i class="fas fa-align-right"></i> نبذة عن المنشأة</label><textarea id="regCompanyDescription" placeholder="نبذة مختصرة عن الشركة والنشاط"></textarea></div>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-file-alt"></i> السيرة الذاتية</label>
+                    <textarea id="regResume" rows="4" placeholder="اكتب نبذة عن خبراتك ومهاراتك ومؤهلاتك..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit"><i class="fas fa-user-plus"></i> إنشاء حساب</button>
+                <p class="form-switch">لديك حساب؟ <a onclick="switchToLogin()">سجل دخول</a></p>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="forgotPasswordModal"><div class="modal-content"><button class="close-btn" onclick="closeModal('forgotPasswordModal')">&times;</button><h2>نسيت كلمة المرور</h2><form id="forgotForm"><div class="form-group"><label>البريد الإلكتروني</label><input id="forgotEmail" type="email" required placeholder="example@email.com"></div><button type="submit" class="btn-submit">إرسال رابط إعادة التعيين</button><p id="forgotMsg"></p></form></div></div><!-- ===== سكريبت ===== -->
+    <script>
+        // ============================================
+        // المتغيرات العامة
+        // ============================================
+        const API_BASE = '';
+        let currentJobs = [];
+        let currentUser = window.currentUser || null;
+        window.addEventListener('authstatechange', (event) => { currentUser = event.detail || null; });
+        let jobsData = [];
+        let jobsLoadTimer = null;
+        let favoriteJobIds = new Set();
+
+        // ============================================
+        // دوال الإشعارات
+        // ============================================
+        function showNotification(message, type = 'info') {
+            const el = document.getElementById('notification');
+            if (!el) return;
+            el.textContent = message;
+            el.className = `notification ${type}`;
+            el.classList.add('show');
+            clearTimeout(el.timeout);
+            el.timeout = setTimeout(() => el.classList.remove('show'), 4000);
+        }
+
+        // ============================================
+        // دوال النوافذ المنبثقة
+        // ============================================
+        function openModal(id) {
+            const modal = document.getElementById(id); if (!modal) return; modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id); if (!modal) return; modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        function switchToRegister() {
+            closeModal('loginModal');
+            setTimeout(() => openModal('registerModal'), 300);
+        }
+
+        function switchToLogin() {
+            closeModal('registerModal');
+            setTimeout(() => openModal('loginModal'), 300);
+        }
+
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // ============================================
+        // الحسابات والمواقع
+        // ============================================
+        function toggleEmployerFields(){
+            const isEmployer=document.getElementById('regRole')?.value==='employer';
+            const box=document.getElementById('employerFields'); if(box) box.style.display=isEmployer?'block':'none';
+        }
+        async function loadRegistrationLocations(){
+            const c=document.getElementById('regCountry'); const city=document.getElementById('regCity'); const n=document.getElementById('regNeighborhood');
+            if(!c||!city||!n)return;
+            const reset=(el,text)=>{el.innerHTML='<option value="">'+text+'</option>';};
+            reset(city,'اختر المدينة'); reset(n,'اختر الحي');
+            c.addEventListener('change',async()=>{reset(city,'جاري التحميل...');reset(n,'اختر الحي');try{const d=await fetch('/api/locations?country='+encodeURIComponent(c.value)).then(r=>r.json());reset(city,'اختر المدينة');(d.cities||[]).forEach(x=>city.insertAdjacentHTML('beforeend','<option value="'+x+'">'+x+'</option>'));}catch(e){reset(city,'تعذر تحميل المدن');}});
+            city.addEventListener('change',async()=>{reset(n,'جاري التحميل...');try{const d=await fetch('/api/locations?country='+encodeURIComponent(c.value)+'&city='+encodeURIComponent(city.value)).then(r=>r.json());reset(n,'اختر الحي');(d.neighborhoods||[]).forEach(x=>n.insertAdjacentHTML('beforeend','<option value="'+x+'">'+x+'</option>'));}catch(e){reset(n,'تعذر تحميل الأحياء');}});
+        }
+        document.addEventListener('DOMContentLoaded',()=>{loadRegistrationLocations();toggleEmployerFields();loadPhoneCountryCode();});
+
+        
+const PHONE_CODES={'تركيا':'+90','سوريا':'+963','السعودية':'+966','مصر':'+20','الإمارات':'+971','الكويت':'+965','قطر':'+974','عُمان':'+968','البحرين':'+973','الأردن':'+962','لبنان':'+961','المغرب':'+212','الجزائر':'+213','تونس':'+216','ليبيا':'+218','السودان':'+249','فلسطين':'+970','العراق':'+964','اليمن':'+967'};
+async function loadPhoneCountryCode(){
+ const s=document.getElementById('regPhoneCode'); if(!s)return;
+ s.innerHTML=Object.entries(PHONE_CODES).map(([c,p])=>`<option value="${p}">${p} ${c}</option>`).join('');
+ try{
+  const g=await fetch('/api/geo').then(r=>r.json());
+  if(g.calling_code){s.value=g.calling_code;document.getElementById('phoneGeoHint').textContent='تم اقتراح رمز '+(g.country||'الدولة')+' بناءً على عنوان اتصالك.';}
+ }catch(e){}
+}
+
+        // ============================================
+        // دوال المصادقة
+        // ============================================
+        async function login(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            let data;
+            try {
+                const res = await fetch(`${API_BASE}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                data = await res.json();
+            } catch (e) {
+                console.error('Login request failed:', e);
+                showNotification('تعذر الاتصال بالخادم. تحقق من تشغيل المنصة.', 'error');
+                return;
+            }
+            if (data.success) {
+                currentUser = data.user;
+                window.currentUser = data.user;
+                window.dispatchEvent(new CustomEvent('authstatechange', { detail: data.user }));
+                if (typeof updateUI === 'function') updateUI(data.user);
+                showNotification(data.message, 'success');
+                closeModal('loginModal');
+                document.getElementById('loginForm')?.reset();
+                try {
+                    loadJobs(); loadFavorites(); loadFeatures(); loadTestimonials(); loadStats(); loadSettings();
+                } catch (uiError) {
+                    console.error('Login UI update failed:', uiError);
+                }
+            } else {
+                showNotification(data.message, 'error');
+            }
+        }
+
+        async function register(event) {
+            event.preventDefault();
+            const firstName = document.getElementById('regFirstName').value;
+            const lastName = document.getElementById('regLastName').value;
+            const email = document.getElementById('regEmail').value;
+            const phone = document.getElementById('regPhone').value;
+            const phoneCountryCode = document.getElementById('regPhoneCode')?.value || '';
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const role = document.getElementById('regRole').value;
+            const category = document.getElementById('regCategory').value;
+            const country = document.getElementById('regCountry').value;
+            const city = document.getElementById('regCity').value;
+            const neighborhood = document.getElementById('regNeighborhood').value;
+            const companyName = document.getElementById('regCompanyName')?.value || '';
+            const companyType = document.getElementById('regCompanyType')?.value || '';
+            const companyDescription = document.getElementById('regCompanyDescription')?.value || '';
+            const resume = document.getElementById('regResume')?.value || '';
+
+            if (!country) {
+                showNotification('يرجى اختيار الدولة', 'error');
+                return;
+            }
+            if (!city) {
+                showNotification('يرجى اختيار المدينة', 'error');
+                return;
+            }
+            if (!neighborhood) {
+                showNotification('يرجى اختيار الحي', 'error');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showNotification('كلمة المرور غير متطابقة', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ firstName, lastName, email, phone, phoneCountryCode, password, role, category, country, city, neighborhood, companyName, companyType, companyDescription, resume })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    closeModal('registerModal');
+                    document.getElementById('registerForm').reset();
+                    if(data.requiresVerification && data.redirect) window.location.href=data.redirect;
+                    else if(data.user?.role==='employer') window.location.href='/employer';
+                    else window.location.href='/profile';
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (e) {
+                showNotification('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+
+        async function logout() {
+            try {
+                const res = await fetch(`${API_BASE}/api/logout`, { method: 'POST', credentials: 'same-origin', cache: 'no-store' });
+                if (!res.ok) throw new Error('logout_failed');
+            } catch (e) {
+                showNotification('تعذر تسجيل الخروج، حاول مرة أخرى', 'error');
+                return;
+            }
+            currentUser = null;
+            window.currentUser = null;
+            favoriteJobIds.clear();
+            // إعادة تحميل الصفحة من الخادم بعد إنهاء الجلسة تمنع بقاء هيدر المستخدم القديم.
+            window.location.replace('/?logged_out=1');
+        }
+
+        async function checkAuth() {
+            // The shared header is initialized from the server-rendered session.
+            // Do not replace that state with a second, competing initial auth check.
+            currentUser = window.currentUser || null;
+            if (currentUser) await loadFavorites();
+            updateHomeUI();
+        }
+
+        // ============================================
+        // دوال المفضلة والطلبات
+        // ============================================
+        // تحميل المفضلة للمستخدم الحالي
+        async function loadFavorites() {
+            if (!currentUser) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/favorites`);
+                if (!res.ok) return;
+                const favs = await res.json();
+                favoriteJobIds = new Set((favs || []).map(j => String(j.id)));
+                renderJobs(currentJobs);
+            } catch (e) {}
+        }
+
+        async function toggleFavorite(jobId, event) {
+            if (!currentUser) {
+                showNotification('يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+            try {
+                const isFav = favoriteJobIds.has(String(jobId));
+                const method = isFav ? 'DELETE' : 'POST';
+                const res = await fetch(`${API_BASE}/api/favorites`, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_id: jobId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    if (isFav) {
+                        favoriteJobIds.delete(String(jobId));
+                    } else {
+                        favoriteJobIds.add(String(jobId));
+                    }
+                    // Toggle the active class on the clicked favorite button
+                    const btn = event.target.closest('.favorite-btn');
+                    if (btn) {
+                        btn.classList.toggle('active');
+                    }
+                    renderJobs(currentJobs);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (e) {
+                showNotification('خطأ', 'error');
+            }
+        }
+
+        async function applyJob(jobId) {
+            if (!currentUser) {
+                showNotification('يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+            async function submit() {
+                try {
+                    const res = await fetch(`${API_BASE}/api/applications`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ job_id: jobId })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        loadJobs();
+                    } else if (res.status === 402 && data.requiresWallet) {
+                        showNotification(data.message, 'error');
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                } catch (e) { showNotification('خطأ', 'error'); }
+            }
+            try {
+                const status = await fetch('/api/applications/sadaqah-status').then(r=>r.json());
+                if (status?.success && status.freeApplicationsRemaining > 0 && window.SadaqahPause) {
+                    SadaqahPause.show('apply', submit);
+                } else {
+                    await submit();
+                }
+            } catch(e) { showNotification('تعذر التحقق من حالة التقديم', 'error'); }
+        }
+
+
+        // ============================================
+        // دوال تحميل البيانات
+        // ============================================
+        async function loadJobs() {
+            try {
+                const res = await fetch(`${API_BASE}/api/jobs`, {credentials:'same-origin'});
+                const data = await res.json();
+                if (!res.ok || !Array.isArray(data)) throw new Error(data.message || 'jobs');
+                jobsData = data;
+                currentJobs = [...jobsData];
+                if (typeof filterJobs === 'function') filterJobs();
+                renderJobs(currentJobs);
+            } catch (e) {
+                console.warn('تعذر تحميل الوظائف:', e);
+                const container = document.getElementById('jobsContainer');
+                if (container) container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#6b7a8a;">لا توجد وظائف حالياً</p>';
+            }
+        }
+
+        function renderJobs(jobs) {
+            const container = document.getElementById('jobsContainer');
+            if (!jobs || jobs.length === 0) {
+                container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#6b7a8a;">لا توجد وظائف حالياً</p>`;
+                return;
+            }
+
+            container.innerHTML = jobs.slice(0, 6).map(job => {
+                return `
+                    <div class="job-card">
+                        <div style="display:flex;justify-content:space-between;align-items:start;">
+                            <div>
+                                <div class="job-title">${job.title}</div>
+                                <div class="job-company"><i class="fas fa-building"></i> ${job.company}</div>
+                                <div class="job-location"><i class="fas fa-map-marker-alt"></i> ${job.city}، ${job.country}</div>
+                            </div>
+                            <button class="favorite-btn ${favoriteJobIds.has(String(job.id)) ? 'active' : ''}" onclick="toggleFavorite(${job.id}, event)">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="job-tags">
+                            ${(job.tags || []).map(t => `<span class="job-tag">#${t}</span>`).join('')}
+                        </div>
+                        <div class="job-footer">
+                            <span class="job-salary"><i class="fas fa-money-bill-wave"></i> ${job.salary}</span>
+                            <button class="apply-btn" onclick="applyJob(${job.id})">تقديم <i class="fas fa-arrow-left"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================
+        // loadStats - الدالة المصححة لإظهار الإحصائيات
+        // ============================================
+        async function loadStats() {
+            try {
+                console.log('📊 جاري تحميل الإحصائيات...');
+                const res = await fetch(`${API_BASE}/api/stats`);
+                const data = await res.json();
+                
+                console.log('📊 بيانات الإحصائيات المستلمة:', data);
+                
+                // تحديث الوظائف
+                const statJobs = document.getElementById('statJobs');
+                if (statJobs) {
+                    statJobs.textContent = data.total_jobs !== undefined ? data.total_jobs : 0;
+                    console.log('✅ الوظائف:', statJobs.textContent);
+                }
+                
+                // تحديث الشركات
+                const statCompanies = document.getElementById('statCompanies');
+                if (statCompanies) {
+                    statCompanies.textContent = data.total_companies !== undefined ? data.total_companies : 0;
+                    console.log('✅ الشركات:', statCompanies.textContent);
+                }
+                
+                // تحديث الباحثين
+                const statUsers = document.getElementById('statUsers');
+                if (statUsers) {
+                    statUsers.textContent = data.total_users !== undefined ? (data.total_users).toLocaleString() : 0;
+                    console.log('✅ الباحثين:', statUsers.textContent);
+                }
+                
+                // تحديث الدول
+                const statCountries = document.getElementById('statCountries');
+                if (statCountries) {
+                    statCountries.textContent = data.total_countries !== undefined ? data.total_countries : 0;
+                    console.log('✅ الدول:', statCountries.textContent);
+                }
+                
+                console.log('✅ تم تحديث جميع الإحصائيات بنجاح');
+            } catch (e) {
+                console.error('❌ خطأ في تحميل الإحصائيات:', e);
+                // استخدام القيم الافتراضية في حالة الخطأ
+                const statJobs = document.getElementById('statJobs');
+                const statCompanies = document.getElementById('statCompanies');
+                const statUsers = document.getElementById('statUsers');
+                const statCountries = document.getElementById('statCountries');
+                
+                if (statJobs) statJobs.textContent = '150';
+                if (statCompanies) statCompanies.textContent = '45';
+                if (statUsers) statUsers.textContent = '2,300';
+                if (statCountries) statCountries.textContent = '22';
+            }
+        }
+
+        // ============================================
+        // loadSettings - تحميل الإعدادات
+        // ============================================
+        async function loadSettings() {
+            try {
+                const res = await fetch(`${API_BASE}/api/settings/general`);
+                const data = await res.json();
+                
+                console.log('📥 بيانات الإعدادات:', data);
+                
+                // تحديث الشريط العلوي
+                const topBarText = document.getElementById('topBarText');
+                if (topBarText && data.top_bar_text) {
+                    topBarText.textContent = data.top_bar_text;
+                    console.log('✅ تم تحديث الشريط العلوي:', data.top_bar_text);
+                }
+                
+                // تحديث عنوان البانر (السلايدر الأول)
+                const heroTitle = document.getElementById('heroTitle');
+                if (heroTitle && data.hero_title) {
+                    heroTitle.innerHTML = data.hero_title;
+                    console.log('✅ تم تحديث عنوان البانر:', data.hero_title);
+                }
+                
+                // تحديث النص الفرعي للبانر
+                const heroSubtitle = document.getElementById('heroSubtitle');
+                if (heroSubtitle && data.hero_subtitle) {
+                    heroSubtitle.textContent = data.hero_subtitle;
+                    console.log('✅ تم تحديث النص الفرعي:', data.hero_subtitle);
+                }
+                
+                // تحديث نص التذييل
+                const footerText = document.getElementById('footerText');
+                if (footerText && data.footer_text) {
+                    footerText.textContent = data.footer_text;
+                    console.log('✅ تم تحديث التذييل:', data.footer_text);
+                }
+
+                // تحديث معلومات الاتصال في الفوتر والقسم العلوي في الصفحة الرئيسية
+                const footerContactAddress = document.getElementById('footerContactAddress');
+                if (footerContactAddress && data.address) {
+                    footerContactAddress.textContent = data.address;
+                    console.log('✅ تم تحديث عنوان الاتصال في الفوتر:', data.address);
+                }
+                const footerContactPhone = document.getElementById('footerContactPhone');
+                if (footerContactPhone && data.contact_phone) {
+                    footerContactPhone.textContent = data.contact_phone;
+                    console.log('✅ تم تحديث هاتف الاتصال في الفوتر:', data.contact_phone);
+                }
+                const footerContactEmail = document.getElementById('footerContactEmail');
+                if (footerContactEmail && data.contact_email) {
+                    footerContactEmail.textContent = data.contact_email;
+                    console.log('✅ تم تحديث بريد الاتصال في الفوتر:', data.contact_email);
+                }
+
+                const homeContactAddress = document.getElementById('homeContactAddress');
+                if (homeContactAddress && data.address) {
+                    homeContactAddress.textContent = data.address;
+                }
+                const homeContactPhone = document.getElementById('homeContactPhone');
+                if (homeContactPhone && data.contact_phone) {
+                    homeContactPhone.textContent = data.contact_phone;
+                }
+                const homeContactEmail = document.getElementById('homeContactEmail');
+                if (homeContactEmail && data.contact_email) {
+                    homeContactEmail.textContent = data.contact_email;
+                }
+                
+                console.log('✅ تم تحديث جميع إعدادات الموقع');
+            } catch (e) {
+                console.error('❌ خطأ في تحميل الإعدادات:', e);
+            }
+        }
+
+        async function loadFeatures() {
+            try {
+                const res = await fetch(`${API_BASE}/api/features`);
+                const features = await res.json();
+                const container = document.getElementById('featuresContainer');
+                
+                if (features && features.length > 0) {
+                    container.innerHTML = features.map(f => `
+                        <div class="feature-card">
+                            <i class="fas ${f.icon || 'fa-star'}"></i>
+                            <h3>${f.title || 'ميزة'}</h3>
+                            <p>${f.description || ''}</p>
+                        </div>
+                    `).join('');
+                    console.log('✅ تم تحميل الميزات:', features.length);
+                } else {
+                    container.innerHTML = `
+                        <div class="feature-card">
+                            <i class="fas fa-shield-alt"></i>
+                            <h3>أمان وخصوصية</h3>
+                            <p>جميع بياناتك مشفرة وآمنة</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-globe-africa"></i>
+                            <h3>تغطية عربية</h3>
+                            <p>نغطي جميع الدول العربية</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-clock"></i>
+                            <h3>تحديث فوري</h3>
+                            <p>الوظائف محدثة بشكل يومي</p>
+                        </div>
+                        <div class="feature-card">
+                            <i class="fas fa-headset"></i>
+                            <h3>دعم مستمر</h3>
+                            <p>فريق دعم متخصص</p>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                console.error('❌ خطأ في تحميل الميزات:', e);
+            }
+        }
+
+        async function loadTestimonials() {
+            try {
+                const res = await fetch(`${API_BASE}/api/testimonials`);
+                const testimonials = await res.json();
+                const container = document.getElementById('testimonialsContainer');
+                
+                if (testimonials && testimonials.length > 0) {
+                    container.innerHTML = testimonials.slice(0, 6).map(t => `
+                        <div class="testimonial-card">
+                            <div class="stars">${'⭐'.repeat(t.rating || 5)}</div>
+                            <p class="comment">"${t.comment || 'تجربة رائعة!'}"</p>
+                            <div class="author">
+                                <div class="avatar">${t.name ? t.name.charAt(0) : 'م'}</div>
+                                <div class="info">
+                                    <h4>${t.name || 'مستخدم'}</h4>
+                                    <p>${t.position || 'باحث عن عمل'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    console.log('✅ تم تحميل الآراء:', testimonials.length);
+                }
+            } catch (e) {
+                console.error('❌ خطأ في تحميل الآراء:', e);
+            }
+        }
+
+        async function loadHomeNews() {
+            try {
+                const res = await fetch(`${API_BASE}/api/news`);
+                const items = await res.json();
+                const grid = document.getElementById('homeNewsGrid');
+                if (!grid) return;
+                const list = Array.isArray(items) ? items.slice(0, 3) : [];
+                if (!list.length) {
+                    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#6b7a8a;">لا توجد أخبار منشورة حالياً.</p>';
+                    return;
+                }
+                grid.innerHTML = list.map(n => {
+                    const img = n.image ? `<img src="${n.image}" alt="${n.title || ''}" loading="lazy" style="width:100%;height:180px;object-fit:cover;display:block;border-radius:12px 12px 0 0;">` : `<div style="width:100%;height:180px;background:linear-gradient(135deg,#102f45,#1a4a6e);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;border-radius:12px 12px 0 0;">📰</div>`;
+                    const excerpt = (n.content || '').slice(0, 120) + ((n.content || '').length > 120 ? '…' : '');
+                    return `<article style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 6px 24px #0000000d;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s;">
+                        <a href="/news/${n.id}" style="text-decoration:none;color:inherit;flex:1;display:flex;flex-direction:column;">
+                            ${img}
+                            <div style="padding:16px;display:flex;flex-direction:column;flex:1;">
+                                <div style="color:#78909c;font-size:13px;margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                    <span style="background:#eaf4ff;color:#1769aa;padding:2px 10px;border-radius:20px;font-weight:700;">${n.category || 'أخبار'}</span>
+                                    <span>📅 ${n.date || ''}</span>
+                                </div>
+                                <h3 style="margin:0 0 6px;font-size:17px;line-height:1.5;color:#0d2b3e;">${n.title || ''}</h3>
+                                <p style="color:#556273;font-size:14px;line-height:1.7;margin:0 0 12px;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${excerpt || 'محتوى الخبر غير متوفر.'}</p>
+                                <span style="display:inline-block;background:#1a4a6e;color:#fff;text-decoration:none;padding:8px 14px;border-radius:9px;font-weight:700;font-size:14px;align-self:flex-start;">اقرأ المزيد ←</span>
+                            </div>
+                        </a>
+                    </article>`;
+                }).join('');
+                console.log('✅ تم تحميل الأخبار في الصفحة الرئيسية');
+            } catch (e) {
+                console.error('❌ خطأ في تحميل الأخبار:', e);
+                const grid = document.getElementById('homeNewsGrid');
+                if (grid) grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#6b7a8a;">تعذر تحميل الأخبار حالياً.</p>';
+            }
+        }
+
+        // ============================================
+        // دوال السلايدر
+        // ============================================
+        let sliderIndex = 0;
+        let sliderTimer = null;
+        let sliderItems = [];
+
+        async function loadSlider() {
+            try {
+                const res = await fetch(`${API_BASE}/api/slider`);
+                const data = await res.json();
+                const container = document.getElementById('sliderContainer');
+                const dotsContainer = document.getElementById('sliderDots');
+                if (!container) return;
+
+                // تصفية السلايدات المفعلة فقط
+                sliderItems = (Array.isArray(data) ? data : []).filter(s => s.enabled !== false);
+                
+                if (sliderItems.length === 0) {
+                    // استخدام سلايد افتراضي إذا لم توجد بيانات
+                    sliderItems = [{
+                        id: 1,
+                        title: 'وظيفة أحلامك <span>تنتظرك</span>',
+                        subtitle: 'منصة التوظيف العربية تربط بين الباحثين عن عمل وأفضل الشركات في العالم العربي. انضم إلى آلاف المرشحين الذين وجدوا وظائفهم المثالية من خلالنا.',
+                        image: 'https://placehold.co/1200x400/1a4a6e/fff?text=وظائف+تقنية',
+                        link: '/jobs'
+                    }];
+                }
+
+                // بناء السلايدات
+                container.innerHTML = sliderItems.map((s, i) => `
+                    <div class="slider-slide ${i === 0 ? 'active' : ''}" 
+                         style="background-image:url('${escAttr(s.image || '')}')"
+                         onclick="window.location.href='${escAttr(s.link || '/jobs')}'">
+                        <div class="slider-content" onclick="event.stopPropagation()">
+                            <h1>${s.title || ''}</h1>
+                            <p>${s.subtitle || ''}</p>
+                            <div class="btn-group">
+                                <a href="${escAttr(s.link || '/jobs')}" class="btn-primary"><i class="fas fa-search"></i> استكشف الآن</a>
+                                <a href="#" class="btn-secondary" onclick="event.stopPropagation();return openAuthModal('registerModal', event)"><i class="fas fa-user-plus"></i> سجل الآن</a>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // نموذج بحث واحد ثابت فوق السلايدر: لا ينتقل مع الصورة ولا يُعاد إنشاؤه عند تغيير السلايد.
+                const hero = document.querySelector('.hero');
+                let searchOverlay = document.getElementById('homeSearchOverlay');
+                const previousQuery = document.getElementById('homeJobQuery')?.value || '';
+                const previousLocation = document.getElementById('homeJobLocation')?.value || '';
+                if (searchOverlay) searchOverlay.remove();
+                searchOverlay = document.createElement('div');
+                searchOverlay.id = 'homeSearchOverlay';
+                searchOverlay.className = 'home-search home-search-overlay';
+                searchOverlay.setAttribute('role', 'search');
+                searchOverlay.setAttribute('aria-label', 'البحث عن وظيفة');
+                searchOverlay.innerHTML = `
+                    <div class="home-search-field"><i class="fas fa-search" aria-hidden="true"></i><input id="homeJobQuery" autocomplete="off" type="text" value="${escAttr(previousQuery)}" placeholder="المسمى الوظيفي، المهارة أو الشركة"><div class="home-suggestions" id="homeJobSuggestions"></div></div>
+                    <div class="home-search-field"><i class="fas fa-location-dot" aria-hidden="true"></i><input id="homeJobLocation" autocomplete="off" type="text" value="${escAttr(previousLocation)}" placeholder="الدولة / المدينة"></div>
+                    <button type="button" class="home-search-button" id="homeSearchButton"><i class="fas fa-search" aria-hidden="true"></i> بحث عن وظيفة</button>`;
+                container.appendChild(searchOverlay);
+                searchOverlay.addEventListener('click', event => event.stopPropagation());
+                searchOverlay.querySelector('#homeSearchButton')?.addEventListener('click', homeJobSearch);
+                setupHomeJobSuggestions();
+
+                // بناء نقاط التنقل
+                if (dotsContainer) {
+                    dotsContainer.innerHTML = sliderItems.map((_, i) => `
+                        <span class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></span>
+                    `).join('');
+                }
+
+                // إظهار/إخفاء الأسهم حسب عدد السلايدات
+                const arrows = document.querySelectorAll('.slider-arrow');
+                arrows.forEach(a => a.style.display = sliderItems.length > 1 ? 'flex' : 'none');
+
+                // بدء التشغيل التلقائي
+                startSliderAuto();
+
+                if (typeof window.refreshSiteTranslations === 'function') window.refreshSiteTranslations();
+                console.log('✅ تم تحميل السلايدر:', sliderItems.length, 'سلايد');
+            } catch (e) {
+                console.error('❌ خطأ في تحميل السلايدر:', e);
+            }
+        }
+
+        function escAttr(str) {
+            return String(str || '').replace(/&/g, '\x26amp;').replace(/"/g, '\x26quot;').replace(/'/g, '\x26#39;');
+        }
+
+        function goToSlide(index) {
+            const slides = document.querySelectorAll('.slider-slide');
+            const dots = document.querySelectorAll('.slider-dots .dot');
+            if (!slides.length) return;
+            
+            sliderIndex = (index + slides.length) % slides.length;
+            
+            slides.forEach((s, i) => s.classList.toggle('active', i === sliderIndex));
+            dots.forEach((d, i) => d.classList.toggle('active', i === sliderIndex));
+        }
+
+        function nextSlide() {
+            goToSlide(sliderIndex + 1);
+            startSliderAuto();
+        }
+
+        function prevSlide() {
+            goToSlide(sliderIndex - 1);
+            startSliderAuto();
+        }
+
+        function startSliderAuto() {
+            if (sliderTimer) clearInterval(sliderTimer);
+            if (sliderItems.length <= 1) return;
+            sliderTimer = setInterval(() => {
+                goToSlide(sliderIndex + 1);
+            }, 5000);
+        }
+
+        // ============================================
+        // دوال واجهة المستخدم
+        // ============================================
+        function updateHomeUI() {
+            const authButtons = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            const employerLink = document.getElementById('employerPortalLink');
+
+            if (currentUser) {
+                if (authButtons) authButtons.style.display = 'none';
+                if (userMenu) userMenu.style.display = 'flex';
+                if (userName) userName.textContent = currentUser.firstName || 'مستخدم';
+                if (userAvatar) {
+                    userAvatar.style.visibility = 'visible';
+                    if (typeof window.getDefaultAvatar === 'function') {
+                        userAvatar.src = currentUser.avatar || window.getDefaultAvatar(currentUser.firstName || 'م');
+                    } else if (currentUser.avatar) {
+                        userAvatar.src = currentUser.avatar;
+                    }
+                }
+                if (employerLink) {
+                    employerLink.style.display = currentUser.role === 'employer' ? 'block' : 'none';
+                }
+                showWelcomeMessage();
+            } else {
+                if (authButtons) authButtons.style.display = 'flex';
+                if (userMenu) userMenu.style.display = 'none';
+                if (employerLink) employerLink.style.display = 'none';
+                document.getElementById('welcomeMessage')?.style.setProperty('display','none');
+            }
+        }
+
+        function showWelcomeMessage() {
+            const el = document.getElementById('welcomeMessage');
+            const quickAccess = document.getElementById('quickAccessSection');
+            if (currentUser && el) {
+                el.innerHTML = `
+                    <i class="fas fa-smile"></i> 
+                    مرحباً ${currentUser.firstName || 'مستخدم'}! 
+                    ${currentUser.role === 'admin' ? '🔑 لديك صلاحيات المدير' : ''}
+                `;
+                el.style.display = 'block';
+                if (quickAccess) quickAccess.style.display = 'block';
+            } else {
+                if (el) el.style.display = 'none';
+                if (quickAccess) quickAccess.style.display = 'none';
+            }
+        }
+
+
+        // إغلاق القائمة عند النقر خارجها
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.user-menu') && !e.target.closest('.user-dropdown')) {
+                const dropdown = document.getElementById('userDropdown'); if (dropdown) dropdown.classList.remove('show');
+            }
+        });
+
+        // ============================================
+        // بدء التطبيق
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 بدء تحميل منصة التوظيف العربية...');
+            checkAuth();
+            loadSlider();
+            loadJobs();
+            loadStats();
+            loadFeatures();
+            loadTestimonials();
+            loadSettings();
+            loadHomeNews();
+            console.log('✅ تم تحميل جميع البيانات');
+
+            // إغلاق النوافذ عند النقر خارجها
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.classList.remove('show');
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            });
+        });
+
+        // جعل الدوال عالمية
+        window.login = login;
+        window.register = register;
+        window.logout = logout;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.switchToRegister = switchToRegister;
+        window.switchToLogin = switchToLogin;
+
+        // فتح نوافذ الدخول/إنشاء الحساب تلقائياً عند الوصول من أي صفحة.
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            const modalId = params.has('register') ? 'registerModal' : (params.has('login') ? 'loginModal' : null);
+            if (!modalId) return;
+            function tryOpenModal() {
+                if (typeof openModal === 'function' && document.getElementById(modalId)) {
+                    openModal(modalId);
+                } else {
+                    setTimeout(tryOpenModal, 100);
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', tryOpenModal);
+            } else {
+                tryOpenModal();
+            }
+        })();
+
+        window.togglePassword = togglePassword;
+        window.toggleFavorite = toggleFavorite;
+        window.applyJob = applyJob;
+        window.toggleUserDropdown = toggleUserDropdown;
+        window.goToSlide = goToSlide;
+        window.nextSlide = nextSlide;
+        window.prevSlide = prevSlide;
+        
+        // استعادة الصورة من sessionStorage فوراً
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedAvatar = sessionStorage.getItem('userAvatarUrl');
+            if (savedAvatar) {
+                const userAvatar = document.getElementById('userAvatar');
+                if (userAvatar) {
+                    userAvatar.src = savedAvatar;
+                }
+            }
+        });
+    </script>
+
+<section id="dynamicServices" style="padding:50px 20px"><div style="max-width:1100px;margin:auto"><h2>الخدمات</h2><div id="servicesContainer" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px"></div></div></section>
+<section id="dynamicFAQ" style="padding:50px 20px;background:#f7f9fc"><div style="max-width:1100px;margin:auto"><h2>الأسئلة الشائعة</h2><div id="faqContainer"></div></div></section>
+<script>async function loadCMSHome(){try{let [s,f]=await Promise.all([fetch('/api/content/services').then(r=>r.json()),fetch('/api/content/faq').then(r=>r.json())]);document.getElementById('servicesContainer').innerHTML=(s||[]).filter(x=>x.enabled!==false).map(x=>`<div style="background:#fff;padding:22px;border-radius:14px;text-align:center;box-shadow:0 4px 15px #1a2a3a08"><div style="width:55px;height:55px;margin:0 auto 12px;background:#eaf4ff;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#1769aa;font-size:24px"><i class="fa ${x.icon||'fa-cog'}"></i></div><h3 style="margin:0 0 8px">${x.title||x.name||''}</h3><p style="color:#687386;line-height:1.7;margin:0">${x.description||x.desc||x.content||''}</p></div>`).join('');document.getElementById('faqContainer').innerHTML=(f||[]).filter(x=>x.enabled!==false).map(x=>`<details style="background:#fff;padding:15px;margin:8px 0;border-radius:10px"><summary>${x.title||x.name||''}</summary><p>${x.content||x.description||''}</p></details>`).join('')}catch(e){console.warn(e)}};document.addEventListener('DOMContentLoaded',loadCMSHome);</script>
+
+<script>document.getElementById('forgotForm')?.addEventListener('submit',async e=>{e.preventDefault();const r=await fetch('/api/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:document.getElementById('forgotEmail').value})});const d=await r.json();document.getElementById('forgotMsg').textContent=d.message||''});</script><script src="/static/js/sadaqah_pause.js"></script>
+</body>
+</html>
+
+
+
+
+<script>
+/* ACCOUNT_NAV_ROLE_AUDIT_FIX_20260816 */
+(function(){
+  'use strict';
+
+  function role(){
+    const b = document.body;
+    return String(
+      b?.dataset?.userRole ||
+      window.currentUser?.role ||
+      window.user?.role ||
+      ''
+    ).toLowerCase();
+  }
+
+  function isSeeker(r){
+    return ['user','job_seeker','seeker','candidate'].includes(r);
+  }
+
+  function makeMenu(){
+    const r = role();
+    const existing = Array.from(document.querySelectorAll(
+      '.user-menu, .profile-menu, .account-menu, .user-dropdown, .profile-dropdown, [class*="user-menu"], [class*="profile-menu"]'
+    ));
+
+    existing.forEach(menu => {
+      const employerLinks = Array.from(menu.querySelectorAll('a[href="/employer"]'));
+      if (isSeeker(r)) employerLinks.forEach(a => (a.closest('li') || a).remove());
+
+      // Never show wallet as a top-level navigation item from the home page.
+      if ((location.pathname === '/' || location.pathname === '') &&
+          !menu.contains(document.activeElement)) {
+        // Keep links inside the menu; this block intentionally does not remove menu items.
+      }
+    });
+
+    // Remove standalone account links only if they are outside a user/account dropdown.
+    if (location.pathname === '/' || location.pathname === '') {
+      document.querySelectorAll('a[href="/profile"],a[href="/employer"],a[href="/wallet"],a[href="/logout"]').forEach(a => {
+        const menu = a.closest('.user-menu,.profile-menu,.account-menu,.user-dropdown,.profile-dropdown,[class*="user-menu"],[class*="profile-menu"]');
+        if (!menu) {
+          const item = a.closest('li,.nav-item,.menu-item') || a;
+          item.remove();
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', makeMenu);
+  } else {
+    makeMenu();
+  }
+})();
+
+
+function setupHomeJobSuggestions(){
+  const input=document.getElementById('homeJobQuery');
+  const box=document.getElementById('homeJobSuggestions');
+  if(!input||!box)return;
+  let timer=null, requestId=0;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]));
+  const hide=()=>{box.classList.remove('show');box.innerHTML='';};
+  const choose=item=>{input.value=item.value||item.label||'';hide();input.dispatchEvent(new Event('change',{bubbles:true}));};
+  input.addEventListener('input',()=>{
+    const q=input.value.trim();
+    clearTimeout(timer);
+    if(q.length<3){hide();return;}
+    timer=setTimeout(async()=>{
+      const id=++requestId;
+      try{
+        const r=await fetch('/api/professions/suggest?q='+encodeURIComponent(q),{credentials:'same-origin',cache:'no-store'});
+        const d=await r.json();
+        if(id!==requestId)return;
+        const items=Array.isArray(d.items)?d.items:[];
+        if(!items.length){box.innerHTML='<div class="home-suggestion-empty">لا توجد اقتراحات مطابقة</div>';box.classList.add('show');return;}
+        box.innerHTML=items.map((x,i)=>`<div class="home-suggestion" data-index="${i}"><span class="icon"><i class="fas ${x.type==='job'?'fa-briefcase':'fa-user-gear'}"></i></span><span><b>${esc(x.label)}</b><small>${x.type==='job'?(x.company?esc(x.company):'وظيفة منشورة'):'مهنة / تخصص'}</small></span></div>`).join('');
+        box.classList.add('show');
+        box.querySelectorAll('.home-suggestion').forEach((el,i)=>el.addEventListener('mousedown',e=>{e.preventDefault();choose(items[i]);}));
+      }catch(_e){hide();}
+    },160);
+  });
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){hide();return;}
+    if(e.key==='Enter' && input.value.trim().length>=3){hide();homeJobSearch();}
+  });
+  input.addEventListener('focus',()=>{if(box.innerHTML.trim() && input.value.trim().length>=3)box.classList.add('show');});
+  document.addEventListener('click',e=>{if(!e.target.closest('#homeJobQuery')&&!e.target.closest('#homeJobSuggestions'))hide();},{passive:true});
+}
+
+function homeJobSearch(){
+  const q=(document.getElementById('homeJobQuery')?.value||'').trim();
+  const loc=(document.getElementById('homeJobLocation')?.value||'').trim();
+  const params=new URLSearchParams();
+  if(q) params.set('q',q);
+  if(loc) params.set('location',loc);
+  const target=params.toString() ? '/jobs?' + params.toString() : '/jobs';
+  window.location.assign(target);
+}
+</script>

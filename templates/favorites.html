@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="{{ site_lang|default("en") }}" dir="{{ site_dir|default("ltr") }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المفضلة - منصة التوظيف العربية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/css/header.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fc; color: #1a2a3a; direction: rtl; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* ===== الإشعارات ===== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #1a4a6e;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            z-index: 99999;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            transition: transform 0.4s ease;
+            max-width: 90%;
+            text-align: center;
+        }
+        .notification.show { transform: translateX(-50%) translateY(0); }
+        .notification.success { background: #2e7d32; }
+        .notification.error { background: #c62828; }
+        .notification.info { background: #1a4a6e; }
+
+        .page-header { background: linear-gradient(135deg, #1a4a6e, #2a6a9e); color: #fff; padding: 60px 0; text-align: center; }
+        .page-header h1 { font-size: 40px; margin-bottom: 10px; }
+        .page-header p { font-size: 18px; opacity: 0.9; }
+
+        .favorites-section { padding: 40px 0; }
+        .favorites-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 25px; }
+        .job-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-right: 4px solid #1a4a6e; transition: 0.3s; }
+        .job-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+        .job-card .job-title { font-size: 20px; font-weight: 700; color: #0d2b3e; margin-bottom: 8px; }
+        .job-card .job-company { color: #1a4a6e; font-weight: 600; margin: 4px 0; font-size: 15px; }
+        .job-card .job-company i { margin-left: 6px; }
+        .job-card .job-location { color: #6b7a8a; font-size: 14px; margin: 4px 0; }
+        .job-card .job-location i { margin-left: 6px; }
+        .job-card .job-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .job-card .job-tag { background: #eef3f9; padding: 4px 14px; border-radius: 30px; font-size: 12px; color: #1a4a6e; font-weight: 500; }
+        .job-card .job-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid #e8edf3; flex-wrap: wrap; gap: 10px; }
+        .job-card .job-salary { font-weight: 600; color: #2e7d32; font-size: 15px; }
+        .job-card .job-salary i { margin-left: 4px; }
+        .job-card .job-posted { font-size: 12px; color: #6b7a8a; }
+        .job-card .job-posted i { margin-left: 4px; }
+        .job-card .remove-btn { background: #c62828; color: #fff; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.3s; }
+        .job-card .remove-btn:hover { background: #b71c1c; transform: scale(1.04); }
+        .job-card .view-btn { background: #1a4a6e; color: #fff; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.3s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .job-card .view-btn:hover { background: #0d2b3e; transform: scale(1.04); }
+
+        .empty-state { text-align: center; padding: 80px 20px; background: #fff; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .empty-state i { font-size: 70px; color: #b0c4d9; margin-bottom: 20px; }
+        .empty-state h3 { color: #1a4a6e; font-size: 24px; margin-bottom: 10px; }
+        .empty-state p { color: #6b7a8a; font-size: 16px; margin-bottom: 20px; }
+        .empty-state .browse-btn { background: #1a4a6e; color: #fff; padding: 12px 35px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .empty-state .browse-btn:hover { background: #0d2b3e; transform: scale(1.05); }
+
+        .error-state { text-align: center; padding: 60px 20px; background: #fff; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .error-state i { font-size: 50px; color: #c62828; margin-bottom: 15px; }
+        .error-state p { color: #6b7a8a; font-size: 16px; margin-bottom: 20px; }
+        .error-state .retry-btn { background: #1a4a6e; color: #fff; padding: 10px 30px; border-radius: 30px; border: none; cursor: pointer; font-weight: 700; font-size: 15px; font-family: inherit; transition: 0.3s; }
+        .error-state .retry-btn:hover { background: #0d2b3e; transform: scale(1.05); }
+
+        .loading-state { text-align: center; padding: 80px 20px; background: #fff; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .loading-state i { font-size: 50px; color: #1a4a6e; margin-bottom: 20px; animation: spin 1.2s linear infinite; }
+        .loading-state p { color: #6b7a8a; font-size: 18px; font-weight: 600; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .footer { background: #0d2b3e; color: #b0c4d9; padding: 30px 0; margin-top: 40px; }
+        .footer .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .footer-social a { color: #b0c4d9; margin: 0 10px; font-size: 20px; transition: 0.3s; }
+        .footer-social a:hover { color: #ffd700; }
+
+        @media (max-width: 768px) {
+            .header .container { flex-direction: column; }
+            .favorites-grid { grid-template-columns: 1fr; }
+            .page-header h1 { font-size: 28px; }
+            .job-card .job-footer { flex-direction: column; align-items: stretch; }
+            .job-card .job-footer .view-btn, .job-card .job-footer .remove-btn { width: 100%; text-align: center; justify-content: center; }
+        }
+    </style>
+    <style>.site-logo-white,.logo h1,.logo span{color:#fff!important;text-decoration:none}</style>
+</head>
+<body>
+    <!-- ===== الإشعارات ===== -->
+    <div id="notification" class="notification"></div>
+
+    <!-- ===== الهيدر الموحد ===== -->
+    {% include 'header.html' %}
+
+<div class="page-header">
+        <div class="container">
+            <h1><i class="fas fa-heart"></i> المفضلة</h1>
+            <p>الوظائف التي أضفتها إلى المفضلة</p>
+        </div>
+    </div>
+
+    <section class="favorites-section">
+        <div class="container">
+            <div id="favoritesContainer" class="favorites-grid"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 منصة التوظيف العربية - جميع الحقوق محفوظة</p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // مصادقة الهيدر وإدارة القائمة موحّدة في templates/header.html.
+
+
+        // ============================================
+        // حماية XSS
+        // ============================================
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : String(text);
+            return div.innerHTML;
+        }
+
+        // ============================================
+        // تحميل وعرض المفضلة
+        // ============================================
+        function showLoading() {
+            const container = document.getElementById('favoritesContainer');
+            container.innerHTML = `
+                <div class="loading-state" style="grid-column:1/-1;">
+                    <i class="fas fa-spinner"></i>
+                    <p>جاري تحميل المفضلة...</p>
+                </div>
+            `;
+        }
+
+        function showEmpty() {
+            const container = document.getElementById('favoritesContainer');
+            container.innerHTML = `
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <i class="fas fa-heart-broken"></i>
+                    <h3>لا توجد وظائف في المفضلة حاليًا</h3>
+                    <p>أضف وظائفك المفضلة لتظهر هنا</p>
+                    <a href="/jobs" class="browse-btn"><i class="fas fa-search"></i> تصفح الوظائف</a>
+                </div>
+            `;
+        }
+
+        function showError() {
+            const container = document.getElementById('favoritesContainer');
+            container.innerHTML = `
+                <div class="error-state" style="grid-column:1/-1;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>تعذر تحميل المفضلة، حاول مرة أخرى.</p>
+                    <button class="retry-btn" onclick="loadFavorites()"><i class="fas fa-redo"></i> إعادة المحاولة</button>
+                </div>
+            `;
+        }
+
+        async function loadFavorites() {
+            const container = document.getElementById('favoritesContainer');
+            showLoading();
+            try {
+                const res = await fetch('/api/favorites');
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        window.location.href = '/';
+                        return;
+                    }
+                    throw new Error('تعذر تحميل البيانات');
+                }
+                const jobs = await res.json();
+                if (!Array.isArray(jobs) || jobs.length === 0) {
+                    showEmpty();
+                    return;
+                }
+                renderFavorites(jobs);
+            } catch (e) {
+                showError();
+            }
+        }
+
+        function renderFavorites(jobs) {
+            const container = document.getElementById('favoritesContainer');
+            container.innerHTML = jobs.map(job => {
+                const locationParts = [job.neighborhood, job.city, job.country].filter(Boolean);
+                const locationText = locationParts.length ? locationParts.join('، ') : '-';
+                const tagsHtml = (job.tags || []).map(t => `<span class="job-tag">#${escapeHtml(t)}</span>`).join('');
+                const salaryText = job.salary || '-';
+                const postedText = job.posted || '';
+
+                return `
+                    <div class="job-card" data-job-id="${escapeHtml(job.id)}">
+                        <div class="job-title">${escapeHtml(job.title || '')}</div>
+                        <div class="job-company"><i class="fas fa-building"></i> ${escapeHtml(job.company || '')}</div>
+                        <div class="job-location"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(locationText)}</div>
+                        <div class="job-tags">${tagsHtml}</div>
+                        <div class="job-footer">
+                            <div>
+                                <div class="job-salary"><i class="fas fa-money-bill-wave"></i> ${escapeHtml(salaryText)}</div>
+                                <div class="job-posted"><i class="fas fa-calendar-alt"></i> ${escapeHtml(postedText)}</div>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <a href="/jobs" class="view-btn">عرض الوظائف <i class="fas fa-arrow-left"></i></a>
+                                <button class="remove-btn" onclick="removeFromFavorites('${escapeHtml(job.id)}')">
+                                    <i class="fas fa-heart-broken"></i> إزالة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function removeFromFavorites(jobId) {
+            try {
+                const res = await fetch('/api/favorites', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_id: jobId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const card = document.querySelector(`.job-card[data-job-id="${jobId}"]`);
+                    if (card) {
+                        card.remove();
+                    }
+                    showNotification(data.message || 'تمت الإزالة', 'success');
+                    const remaining = document.querySelectorAll('.job-card');
+                    if (remaining.length === 0) {
+                        showEmpty();
+                    }
+                } else {
+                    showNotification(data.message || 'تعذرت الإزالة', 'error');
+                }
+            } catch (e) {
+                showNotification('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+
+        // تحميل البيانات عند تشغيل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+
+            loadFavorites();
+        });
+    </script>
+
+    <script>
+        (async function(){
+            try {
+                const s = await fetch('/api/settings/general').then(r => r.json());
+                document.title = s.site_name || document.title;
+                document.querySelectorAll('[data-site-name]').forEach(e => e.textContent = s.site_name || '');
+                document.querySelectorAll('[data-site-description]').forEach(e => e.textContent = s.site_description || '');
+                document.querySelectorAll('[data-contact-email]').forEach(e => e.textContent = s.contact_email || '');
+                document.querySelectorAll('[data-contact-phone]').forEach(e => e.textContent = s.contact_phone || '');
+                document.querySelectorAll('[data-address]').forEach(e => e.textContent = s.address || '');
+                document.querySelectorAll('[data-working-hours]').forEach(e => e.textContent = s.working_hours || '');
+                document.querySelectorAll('[data-top-bar]').forEach(e => e.textContent = s.top_bar_text || '');
+                document.querySelectorAll('[data-footer-text]').forEach(e => e.textContent = s.footer_text || '');
+            } catch(e) {}
+        })();
+    </script>
+    </body>
+</html>

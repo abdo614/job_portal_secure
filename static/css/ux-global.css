@@ -1,0 +1,35 @@
+/* PHASE13 - Global UX / Responsive / Accessibility */
+:root{--ux-primary:#1a4a6e;--ux-danger:#c62828;--ux-success:#2e7d32;--ux-surface:#fff;--ux-shadow:0 8px 28px rgba(0,0,0,.12)}
+html{scroll-behavior:smooth}
+body{direction:inherit;min-height:100vh;overflow-x:hidden}
+img,video,iframe{max-width:100%}
+button,input,select,textarea{font:inherit;max-width:100%}
+button,a{touch-action:manipulation}
+:focus-visible{outline:3px solid #ffd54f;outline-offset:2px}
+.ux-skip-link{position:fixed;top:10px;inset-inline-start:10px;z-index:100000;padding:10px 16px;background:#0d2b3e;color:#fff;border-radius:8px;transform:translateY(-150%);transition:transform .2s}
+.ux-skip-link:focus{transform:translateY(0)}
+#main-content{min-height:40vh}
+.ux-toast-container{position:fixed;top:18px;inset-inline-start:50%;transform:translateX(-50%);z-index:100001;display:flex;flex-direction:column;gap:10px;width:min(92vw,460px);pointer-events:none}
+.ux-toast{pointer-events:auto;background:#1a4a6e;color:#fff;padding:13px 16px;border-radius:12px;box-shadow:var(--ux-shadow);display:flex;align-items:flex-start;gap:10px;line-height:1.5;animation:ux-toast-in .22s ease-out}
+.ux-toast.success{background:var(--ux-success)}.ux-toast.error{background:var(--ux-danger)}.ux-toast.warning{background:#8a5a00}.ux-toast .ux-toast-close{margin-inline-start:auto;border:0;background:transparent;color:inherit;cursor:pointer;font-size:18px}
+.ux-loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.72);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:99998}
+.ux-loading-overlay.is-active{display:flex}.ux-spinner{width:42px;height:42px;border:4px solid #dbe4ec;border-top-color:var(--ux-primary);border-radius:50%;animation:ux-spin .8s linear infinite}
+.ux-mobile-table{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+@keyframes ux-toast-in{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ux-spin{to{transform:rotate(360deg)}}
+@media(max-width:768px){
+ .container{padding-inline:14px}
+ .page-content{padding:22px 16px;margin:20px 0}
+ .page-header{padding:38px 0!important}
+ .page-header h1{font-size:30px!important}
+ .page-header p{font-size:15px!important}
+ .footer .container{flex-direction:column;text-align:center}
+ .ux-toast-container{top:10px}
+ .header .container{padding-inline:12px}
+ .nav .user-dropdown{left:auto!important;right:0!important;inset-inline-start:auto!important;inset-inline-end:0!important;top:calc(100% + 6px)!important}
+}
+@media(max-width:480px){
+ .page-header h1{font-size:25px!important}
+ .page-content{border-radius:12px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}

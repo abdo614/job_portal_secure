@@ -1,0 +1,134 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Encryption keys - NEVER commit
+data/.key
+**/.key
+*.key
+*.pem
+
+# Encrypted application data
+data/*.enc
+data/*.json
+
+# Backups
+data/backups/
+*.zip
+
+# Logs and generated reports
+*.log
+scan_report_*.json
+test_report_*.json
+
+# Temporary files
+*.tmp
+*.temp
+
+# Windows
+desktop.ini
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Internal audit & review reports (not for public repo)
+*_AUDIT_*.json
+*_AUDIT_*.txt
+*_AUDIT_*.md
+AUDIT_*.md
+*AUDIT_REPORT*.md
+*_REPORT_*.json
+*_REPORT_*.txt
+*_REPORT_*.md
+*_FIX_REPORT*.json
+*_FIX_REPORT*.md
+*FINAL_REPORT*.md
+*FINAL_FIX*.json
+*FIXES.txt
+*_REVIEW_REPORT.md
+*_FINAL_REPORT.md
+*COMPLETION_AND_TEST_REPORT*.md
+*DEMO_*.md
+*CHANGES*.txt
+*_CHANGES_*.md
+*ROADMAP*.md
+*UI_VISUAL_REPORT*.md
+*UI_REPORT*.md
+*BROWSER_TEST_REPORT*.md
+*VISUAL_REPORT*.md
+*PARITY*.md
+PROJECT_FULL_AUDIT*.json
+FULL_NAV_WALLET*.json
+WALLET_FINAL_FIX*.json
+ADMIN_*.json
+CLEANUP_GUIDE*.md
+SAFE_CLEANUP*.md
+SEARCH*.md
+EMAIL_SETUP.txt
+TELEGRAM_*.md
+STEP*_REPORT*.md
+PHASE*_*.md
+V*_CHANGES*.txt
+UX_*.md
+GLOBAL_LANGUAGE*.md
+EMPLOYER_*.md
+JOBS_*.md
+DEVELOPMENT_*.md
+PAYMENT_*.md
+SECURITY_*.md
+WALLET_*.md
+REPAIR_*.md
+DEMO_ENVIRONMENT_AR.md
+DEMO_DATA_UPDATE*.md
+
+# Demo/test scripts not for production
+demo_repair.py
+fix_users.py
+patch_step9.py
+phase4_patch.py
+safe_cleanup.py
+safe_cleanup_auto.py
+_verify_stats_render.py
+TESTT.py
+check_sizes.py
+check_admin_template*.py
+site_scanner.py
+error_log.py
+
+# Temporary test artifacts
+cleanup_reports/
+full_system_report_*.json
+full_system_report_*.txt
+security_report_*.json
+security_report_*.txt
+
+# Test scripts kept in tests/ dir only
+test_*.py
+!tests/test_cache_behavior.py
+
+# Static uploads - keep directory but ignore generated files except a placeholder
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Demo accounts CSV (contains demo passwords)
+DEMO_ACCOUNTS.csv
+demo_accounts.csv
+*_accounts.csv
+*.csv
+
+# Old README files (contain real admin credentials)
+README_FIXED_AR.md
+README_V7_8_LANGUAGE_MENU_AR.md

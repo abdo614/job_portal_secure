@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}{{ page.title or 'صفحة' }} - منصة التوظيف العربية{% endblock %}
+{% block page_title %}{{ page.title or 'صفحة' }}{% endblock %}
+{% block page_subtitle %}{{ page.description or '' }}{% endblock %}
+{% block content %}
+    <a href="/" style="display:inline-block;margin-bottom:20px;color:#1a4a6e;text-decoration:none;">← العودة إلى الرئيسية</a>
+    <div class="page-content">
+        {{ page.content | safe }}
+    </div>
+{% endblock %}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="{{ site_lang|default("en") }}" dir="{{ site_dir|default("ltr") }}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الأخبار - منصة التوظيف العربية</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/header.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fc; color: #1a2a3a; direction: rtl; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }
+        .card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 24px #0000000d; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s; }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px #0000001a; }
+        .card img { width: 100%; height: 180px; object-fit: cover; display: block; }
+        .card .body { padding: 18px; display: flex; flex-direction: column; flex: 1; }
+        .card .meta { color: #78909c; font-size: 13px; margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .card .meta .cat { background: #eaf4ff; color: #1769aa; padding: 2px 10px; border-radius: 20px; font-weight: 700; }
+        .card h2 { margin: 0 0 8px; font-size: 18px; line-height: 1.5; color: #0d2b3e; }
+        .card p { color: #556273; font-size: 14px; line-height: 1.7; margin: 0 0 14px; flex: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .card .more { display: inline-block; background: #1a4a6e; color: #fff; text-decoration: none; padding: 9px 16px; border-radius: 9px; font-weight: 700; font-size: 14px; align-self: flex-start; }
+        a { color: #1a4a6e; text-decoration: none; }
+        .empty { text-align: center; color: #78909c; padding: 40px; font-size: 16px; }
+        @media (max-width: 768px) {
+            .cards { grid-template-columns: 1fr; }
+        }
+        .notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1a4a6e; color: #fff; padding: 14px 28px; border-radius: 12px; font-weight: 600; font-size: 15px; z-index: 99999; box-shadow: 0 8px 30px rgba(0,0,0,0.25); transition: transform 0.4s ease; max-width: 90%; text-align: center; }
+        .notification.show { transform: translateX(-50%) translateY(0); }
+        .notification.success { background: #2e7d32; }
+        .notification.error { background: #c62828; }
+        .notification.info { background: #1a4a6e; }
+        .page-header { background: linear-gradient(135deg, #0d2b3e, #1a4a6e); color: #fff; padding: 70px 0; text-align: center; position: relative; overflow: hidden; }
+        .page-header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%); animation: pulse 8s ease-in-out infinite; }
+        .page-header h1 { font-size: 42px; margin-bottom: 12px; position: relative; }
+        .page-header p { font-size: 18px; opacity: 0.9; position: relative; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .footer { background: linear-gradient(135deg, #0d2b3e, #1a4a6e); color: #b0c4d9; padding: 35px 0; margin-top: 50px; }
+        .footer .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .footer-social a { color: #b0c4d9; margin: 0 12px; font-size: 22px; transition: all 0.3s ease; }
+        .footer-social a:hover { color: #ffd700; transform: translateY(-3px); }
+        @media (max-width: 768px) {
+            .page-header { padding: 50px 0; }
+            .page-header h1 { font-size: 32px; }
+        }
+        @media (max-width: 480px) {
+            .page-header h1 { font-size: 26px; }
+            .page-header p { font-size: 15px; }
+        }
+</style><style>.site-logo-white,.logo h1,.logo span{color:#fff!important;text-decoration:none}</style></head>
+<body>
+    {% include 'header.html' %}
+
+<div class="page-header">
+        <div class="container">
+            <h1>📰 الأخبار</h1>
+            <p>اكتشف أحدث الأخبار والعروض الخاصة في الدول العربية</p>
+        </div>
+    </div>
+
+    <main class="container"><h1>آخر الأخبار</h1><div id="news" class="cards"></div></main>
+<script>
+const PLACEHOLDER='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180"><rect width="300" height="180" fill="#eef3f8"/><text x="150" y="92" text-anchor="middle" fill="#7891a3" font-family="Tahoma" font-size="16">📰</text></svg>');
+fetch('/api/news').then(r=>r.json()).then(items=>{
+ const el=document.getElementById('news');
+ if(!items||!items.length){el.innerHTML='<div class="empty">لا توجد أخبار منشورة حالياً.</div>';return}
+ el.innerHTML=items.map(n=>{
+   const img=n.image?`<img src="${n.image}" alt="${n.title||''}" loading="lazy">`:`<img src="${PLACEHOLDER}" alt="" loading="lazy">`;
+   const excerpt=(n.content||'').slice(0,150)+(n.content&&n.content.length>150?'…':'');
+   return `<article class="card">
+     ${img}
+     <div class="body">
+       <div class="meta"><span class="cat">${n.category||'أخبار'}</span><span>📅 ${n.date||''}</span></div>
+       <h2>${n.title||''}</h2>
+       <p>${excerpt||'محتوى الخبر غير متوفر.'}</p>
+       <a class="more" href="/news/${n.id}">اقرأ المزيد ←</a>
+     </div>
+   </article>`;
+ }).join('');
+}).catch(()=>{document.getElementById('news').innerHTML='<div class="empty">تعذر تحميل الأخبار حالياً.</div>'});
+</script>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 منصة التوظيف العربية - جميع الحقوق محفوظة</p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
+</body></html>

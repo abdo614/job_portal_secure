@@ -1,0 +1,318 @@
+<header class="header" data-authenticated="{{ '1' if header_user else '0' }}">
+    <div class="container">
+        <a href="/" class="logo site-logo-white" aria-label="{{ trans('الرئيسية') }}">
+            <i class="fas fa-briefcase"></i>
+            <div>
+                <h1>{{ trans('منصة التوظيف') }}</h1>
+                <span>{% if site_lang == 'ar' %}العربية{% else %}{{ site_languages.get(site_lang, {}).get('name', 'English') }}{% endif %}</span>
+            </div>
+        </a>
+        <nav class="nav">
+            {% for mi in menu_items %}
+            <a href="{{ mi.url }}"{% if request.path == mi.url or (mi.url != '/' and request.path.startswith(mi.url)) %} class="active"{% endif %}>
+                <i class="{{ mi.icon or 'fas fa-link' }}"></i> {{ trans(mi.label) }}
+            </a>
+            {% endfor %}
+
+            <button id="notificationBell" type="button" title="{{ trans('الإشعارات') }}" onclick="event.stopPropagation(); openNotifications();" style="position:relative;border:0;background:transparent;color:inherit;cursor:pointer;font-size:18px;margin-inline:4px;display:none;align-items:center;justify-content:center"><i class="fas fa-bell"></i><b id="notificationCount" style="position:absolute;top:-5px;right:-3px;min-width:16px;height:16px;border-radius:99px;background:#e53935;color:#fff;font:700 10px/16px Arial;display:none"></b></button>
+            <div id="userMenu" class="user-menu" style="display:{{ 'flex' if header_user else 'none' }};" onclick="toggleUserDropdown()">
+                <img id="userAvatar" src="{{ header_user.avatar if header_user else '' }}" alt="{{ trans('صورة المستخدم') }}" onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src=window.getDefaultAvatar ? window.getDefaultAvatar(this.alt) : ''; } this.style.visibility='visible';" />
+                <span id="userName">{{ header_user.firstName if header_user else '' }}</span>
+                <i class="fas fa-chevron-down" style="font-size:12px;opacity:0.6;"></i>
+            </div>
+            <div id="userDropdown" class="user-dropdown">
+                <a href="/profile"><i class="fas fa-user"></i> {{ trans('الملف الشخصي') }}</a>
+                <div id="employerPortalLink" style="display:none;">
+                    <a href="/employer"><i class="fas fa-building"></i> {{ trans('بوابة صاحب العمل') }}</a>
+                </div>
+                <a href="/messages" class="user-dropdown-messages" style="position:relative;">
+                    <i class="fas fa-comments"></i> {{ trans('الرسائل') }}
+                    <b id="messageCount" aria-label="{{ trans('الرسائل غير المقروءة') }}" style="display:none;">0</b>
+                </a>
+                <a href="/favorites"><i class="fas fa-heart"></i> {{ trans('المفضلة') }}</a>
+                {% if header_user and header_user.role in ['seeker', 'job_seeker', 'candidate', 'user'] %}
+                <a href="/applications"><i class="fas fa-clipboard-list"></i> {{ trans('طلباتي') }}</a>
+                {% endif %}
+
+                <a href="/wallet"><i class="fas fa-wallet"></i> {{ trans('المحفظة') }}</a>
+                <div id="languageControlSlot" class="account-language-item" data-no-translate="1"></div>
+                <hr />
+                <a href="#" class="logout-btn" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> {{ trans('تسجيل خروج') }}</a>
+            </div>
+            <div id="authButtons" style="display:{{ 'none' if header_user else 'flex' }};">
+                <a href="/?login=1" class="auth-btn" data-auth-action="login" onclick="return openAuthModal('loginModal', event)"><i class="fas fa-sign-in-alt"></i> {{ trans('دخول') }}</a>
+                <a href="/?register=1" class="auth-btn register-btn" data-auth-action="register" onclick="return openAuthModal('registerModal', event)"><i class="fas fa-user-plus"></i> {{ trans('حساب جديد') }}</a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<script>
+/* AUTH_NAV_ROBUST_FIX_20260816 */
+(function(){
+    'use strict';
+    window.openAuthModal = function(modalId, ev){
+        try {
+            if (ev) ev.preventDefault();
+            var modal = document.getElementById(modalId);
+            if (modal && typeof window.openModal === 'function') {
+                window.openModal(modalId);
+                return false;
+            }
+            // The authentication forms live on the home page. Always navigate there
+            // with an explicit flag if this page does not contain the requested modal.
+            var target = modalId === 'registerModal' ? '/?register=1' : '/?login=1';
+            if (window.location.pathname === '/' || window.location.pathname === '/home') {
+                window.location.href = target;
+            } else {
+                window.location.assign(target);
+            }
+        } catch (err) {
+            try {
+                var target = modalId === 'registerModal' ? '/?register=1' : '/?login=1';
+                window.location.assign(target);
+            } catch (_) {}
+        }
+        return false;
+    };
+})();
+</script>
+<script>
+/* NOTIFICATION_CENTER_V77 */
+(function(){
+  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+  async function refreshNotifications(){if(window.__USER_AUTHENTICATED__!==true)return;try{const r=await fetch('/api/notifications',{credentials:'same-origin'});if(!r.ok)return;const d=await r.json();const b=document.getElementById('notificationBell'),c=document.getElementById('notificationCount');if(!b)return;b.style.display='inline-flex';const n=Number(d.unread||0);c.textContent=n>99?'99+':String(n);c.style.display=n?'block':'none';}catch(e){}}
+  async function refreshMessageCount(){
+    if(window.__USER_AUTHENTICATED__!==true)return;
+    try{
+      const r=await fetch('/api/messages',{credentials:'same-origin',cache:'no-store'});
+      if(!r.ok)return;
+      const d=await r.json();
+      if(!d.success)return;
+      const n=(d.threads||[]).reduce((sum,t)=>sum+Number(t.unread||0),0);
+      const b=document.getElementById('messageCount');
+      if(!b)return;
+      b.textContent=n>99?'99+':String(n);
+      b.style.display=n?'inline-block':'none';
+    }catch(e){}
+  }
+  function icon(kind){return ({message:'💬',application:'📄',interview:'🗓️',payment:'💳',wallet:'💰',security:'🛡️'})[kind]||'🔔'}
+  window.openNotifications=async function(){try{const r=await fetch('/api/notifications',{credentials:'same-origin'});const d=await r.json();if(!d.success)return;const items=d.items||[];const old=document.getElementById('notificationsPanel');if(old)old.remove();const box=document.createElement('div');box.id='notificationsPanel';box.className='modern-notifications-panel';box.innerHTML='<div class="notif-head"><div><strong>الإشعارات</strong><small>آخر التحديثات المهمة</small></div><button class="notif-close" type="button">✕</button></div>'+ (items.length?items.map(x=>`<button class="notif-item ${x.read?'read':''}" data-id="${esc(x.id)}" data-link="${esc(x.link||'')}" type="button"><span class="notif-icon">${icon(x.kind)}</span><span class="notif-copy"><b>${esc(x.title||'')}</b><small>${esc(x.message||'')}</small><em>${esc((x.createdAt||'').replace('T',' ').slice(0,16))}</em></span>${x.read?'':'<i class="notif-dot"></i>'}</button>`).join(''):'<div class="notif-empty">لا توجد إشعارات جديدة</div>');document.body.appendChild(box);box.querySelector('.notif-close').onclick=()=>box.remove();box.querySelectorAll('.notif-item').forEach(item=>item.onclick=async()=>{const id=item.dataset.id,link=item.dataset.link;await fetch('/api/notifications',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});if(link)window.location.href=link;else{item.classList.add('read');refreshNotifications();}});}catch(e){}};
+  document.addEventListener('DOMContentLoaded',function(){refreshNotifications();refreshMessageCount();setInterval(refreshMessageCount,5000);});
+})();
+</script>
+<style>
+.user-dropdown-messages #messageCount{
+    position:absolute;
+    inset-inline-end:12px;
+    top:50%;
+    transform:translateY(-50%);
+    min-width:19px;
+    height:19px;
+    padding:0 5px;
+    border-radius:999px;
+    background:#e53935;
+    color:#fff;
+    font:700 10px/19px Arial,sans-serif;
+    text-align:center;
+    box-shadow:0 2px 7px rgba(229,57,53,.28);
+}
+.modern-notifications-panel{position:fixed;top:72px;inset-inline-end:18px;z-index:100001;width:min(390px,calc(100vw - 24px));max-height:min(70vh,620px);overflow:auto;background:rgba(255,255,255,.98);border:1px solid #e7edf2;border-radius:22px;box-shadow:0 24px 70px rgba(15,43,60,.24);padding:12px;direction:rtl}.notif-head{display:flex;justify-content:space-between;align-items:center;padding:7px 8px 12px;border-bottom:1px solid #edf1f5}.notif-head div{display:flex;flex-direction:column;gap:3px}.notif-head strong{font-size:19px;color:#173b52}.notif-head small{font-size:13px;color:#82909d}.notif-close{border:0;background:#f1f4f7;width:32px;height:32px;border-radius:10px;cursor:pointer}.notif-item{width:100%;display:flex;gap:10px;align-items:flex-start;text-align:right;border:0;border-bottom:1px solid #f0f2f5;background:#fff;padding:13px 8px;cursor:pointer;transition:.16s}.notif-item:hover{background:#f6fafc;transform:translateY(-1px)}.notif-item.read{opacity:.62}.notif-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:12px;background:#eef7fb;font-size:18px;flex:0 0 auto}.notif-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}.notif-copy b{font-size:15px;color:#183b50}.notif-copy small{font-size:14px;color:#5f7180;line-height:1.6}.notif-copy em{font-style:normal;font-size:11px;color:#9aa6b0}.notif-dot{width:7px;height:7px;border-radius:50%;background:#1d83b7;margin-top:7px;flex:0 0 auto}.notif-empty{text-align:center;padding:40px 15px;color:#83909b;font-size:14px}
+</style>
+<script>
+/* CLIENT_ERROR_REPORTING_20260816 */
+(function(){
+    'use strict';
+    var LOGGING_ENABLED = {{ error_logging_enabled|default(true)|tojson }};
+    if (!LOGGING_ENABLED) return;
+    var lastSent = 0;
+    function sendClientError(payload){
+        try {
+            var now = Date.now();
+            if (now - lastSent < 1500) return;
+            lastSent = now;
+            payload = payload || {};
+            payload.url = String(window.location.href || '').slice(0, 500);
+            payload.userAgent = String(navigator.userAgent || '').slice(0, 300);
+            fetch('/api/client-error', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                credentials: 'same-origin',
+                keepalive: true,
+                body: JSON.stringify(payload)
+            }).catch(function(){});
+        } catch (_) {}
+    }
+    window.addEventListener('error', function(e){
+        sendClientError({
+            message: e.message || 'JavaScript error',
+            cause: 'client_js_error',
+            source: e.filename || '',
+            line: e.lineno || 0,
+            column: e.colno || 0,
+            stack: e.error && e.error.stack ? e.error.stack : ''
+        });
+    });
+    window.addEventListener('unhandledrejection', function(e){
+        var reason = e.reason;
+        sendClientError({
+            message: reason && reason.message ? reason.message : String(reason || 'Unhandled promise rejection'),
+            cause: 'client_unhandled_rejection',
+            source: '',
+            line: 0,
+            column: 0,
+            stack: reason && reason.stack ? reason.stack : ''
+        });
+    });
+    /* تسجيل أخطاء HTTP التي لا تتحول إلى استثناء JavaScript تلقائياً. */
+    var originalFetch = window.fetch;
+    window.fetch = function(){
+        var args = arguments;
+        return originalFetch.apply(this, args).then(function(response){
+            try {
+                var requestUrl = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
+                if (!response.ok && requestUrl !== '/api/client-error' && !(response.status === 401 && requestUrl.includes('/api/candidate/smart-jobs')) && !(response.status === 402 && requestUrl.includes('/api/applications'))) {
+                    sendClientError({
+                        message: 'HTTP ' + response.status + ' ' + (response.statusText || ''),
+                        cause: 'client_http_error',
+                        source: requestUrl,
+                        line: 0,
+                        column: 0,
+                        stack: ''
+                    });
+                }
+            } catch (_) {}
+            return response;
+        });
+    };
+})();
+</script>
+
+
+<script>
+/* GLOBAL_LANGUAGE_SYSTEM_20260817 */
+window.__SITE_LANG__ = {{ site_lang|default("ar")|tojson }};
+window.__SITE_LANGUAGES__ = {{ site_languages|default({})|tojson }};
+window.__SITE_I18N__ = {{ i18n_dictionary|default({})|tojson }}; window.__USER_AUTHENTICATED__ = {{ 'true' if session.get('user_id') else 'false' }};
+</script>
+<script src="/static/js/site-i18n.js" defer></script>
+<script>
+/* AUTH_NAV_NO_FLASH_20260817 */
+window.__HEADER_AUTH__ = {{ header_user|default(None)|tojson }};
+window.currentUser = window.__HEADER_AUTH__ || null;
+
+function getDefaultAvatar(name){
+  const label = String(name || window.currentUser?.firstName || 'م').trim().slice(0,1) || 'م';
+  const svg = `<svg xmlns=\"http://www.w3.org/2000/svg\" width=128 height=128 viewBox=\"0 0 128 128\"><rect width=128 height=128 rx=64 fill=\"#1a4a6e\"/><text x=64 y=78 text-anchor=\"middle\" font-family=\"Arial,sans-serif\" font-size=58 font-weight=700 fill=\"white\">${label}</text></svg>`;
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
+window.getDefaultAvatar = getDefaultAvatar;
+
+function applyAvatar(user){
+  const img=document.getElementById('userAvatar');
+  if(!img) return;
+  const avatar=(user && user.avatar) ? String(user.avatar).trim() : '';
+  img.dataset.fallback='';
+  img.style.visibility='visible';
+  img.src=avatar || getDefaultAvatar(user?.firstName || 'م');
+}
+
+function updateUI(user){
+  if(arguments.length) window.currentUser = user || null;
+  const userState=window.currentUser || null;
+  const authButtons=document.getElementById('authButtons');
+  const userMenu=document.getElementById('userMenu');
+  const userName=document.getElementById('userName');
+  const userAvatar=document.getElementById('userAvatar');
+  const employerLink=document.getElementById('employerPortalLink');
+  const bell=document.getElementById('notificationBell');
+  const dropdown=document.getElementById('userDropdown');
+
+  if(userState){
+    if(authButtons) authButtons.style.display='none';
+    if(userMenu) userMenu.style.display='flex';
+    if(userName) userName.textContent=userState.firstName||userState.first_name||'مستخدم';
+    if(userAvatar) applyAvatar(userState);
+    if(employerLink) employerLink.style.display=userState.role==='employer'?'block':'none';
+    if(bell) bell.style.display='inline-flex';
+  }else{
+    if(authButtons) authButtons.style.display='flex';
+    if(userMenu) userMenu.style.display='none';
+    if(employerLink) employerLink.style.display='none';
+    if(bell) bell.style.display='none';
+    if(dropdown) dropdown.classList.remove('show');
+    const mc=document.getElementById('messageCount'); if(mc) mc.style.display='none';
+  }
+}
+async function refreshHeaderAuth(){
+  try{
+    const res=await fetch('/api/check-auth',{credentials:'same-origin',cache:'no-store'});
+    const data=await res.json();
+    window.currentUser=data.authenticated?data.user:null;
+    window.dispatchEvent(new CustomEvent('authstatechange',{detail:window.currentUser}));
+    updateUI();
+  }catch(e){ updateUI(); }
+}
+function toggleUserDropdown(){const el=document.getElementById('userDropdown');if(el)el.classList.toggle('show');}
+document.addEventListener('click',function(e){const el=document.getElementById('userDropdown');if(el&&!e.target.closest('.user-menu')&&!e.target.closest('.user-dropdown'))el.classList.remove('show');});
+async function logout(){try{const r=await fetch('/api/logout',{method:'POST',credentials:'same-origin',cache:'no-store'});if(!r.ok)throw new Error('logout_failed');}catch(e){return;} window.currentUser=null; window.dispatchEvent(new CustomEvent('authstatechange',{detail:null})); updateUI(); window.location.replace('/?logged_out=1');}
+document.addEventListener('DOMContentLoaded',function(){ updateUI(); refreshHeaderAuth(); });
+window.addEventListener('pageshow', function(){ updateUI(); refreshHeaderAuth(); });
+</script>
+
+
+<script>
+/* ACCOUNT_NAV_ROLE_AUDIT_FIX_20260816 */
+(function(){
+  'use strict';
+
+  function role(){
+    const b = document.body;
+    return String(
+      b?.dataset?.userRole ||
+      window.currentUser?.role ||
+      window.user?.role ||
+      ''
+    ).toLowerCase();
+  }
+
+  function isSeeker(r){
+    return ['user','job_seeker','seeker','candidate'].includes(r);
+  }
+
+  function makeMenu(){
+    const r = role();
+    const existing = Array.from(document.querySelectorAll(
+      '.user-menu, .profile-menu, .account-menu, .user-dropdown, .profile-dropdown, [class*="user-menu"], [class*="profile-menu"]'
+    ));
+
+    existing.forEach(menu => {
+      const employerLinks = Array.from(menu.querySelectorAll('a[href="/employer"]'));
+      if (isSeeker(r)) employerLinks.forEach(a => (a.closest('li') || a).remove());
+
+      // Never show wallet as a top-level navigation item from the home page.
+      if ((location.pathname === '/' || location.pathname === '') &&
+          !menu.contains(document.activeElement)) {
+        // Keep links inside the menu; this block intentionally does not remove menu items.
+      }
+    });
+
+    // Remove standalone account links only if they are outside a user/account dropdown.
+    if (location.pathname === '/' || location.pathname === '') {
+      document.querySelectorAll('a[href="/profile"],a[href="/employer"],a[href="/wallet"],a[href="/logout"]').forEach(a => {
+        const menu = a.closest('.user-menu,.profile-menu,.account-menu,.user-dropdown,.profile-dropdown,[class*="user-menu"],[class*="profile-menu"]');
+        if (!menu) {
+          const item = a.closest('li,.nav-item,.menu-item') || a;
+          item.remove();
+        }
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', makeMenu);
+  } else {
+    makeMenu();
+  }
+})();
+</script>

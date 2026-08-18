@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="{{ site_lang|default("en") }}" dir="{{ site_dir|default("ltr") }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طلباتي - منصة التوظيف العربية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/css/header.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fc; color: #1a2a3a; direction: rtl; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* ===== الإشعارات ===== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #1a4a6e;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            z-index: 99999;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            transition: transform 0.4s ease;
+            max-width: 90%;
+            text-align: center;
+        }
+        .notification.show { transform: translateX(-50%) translateY(0); }
+        .notification.success { background: #2e7d32; }
+        .notification.error { background: #c62828; }
+        .notification.info { background: #1a4a6e; }
+
+        .page-header { background: linear-gradient(135deg, #1a4a6e, #2a6a9e); color: #fff; padding: 60px 0; text-align: center; }
+        .page-header h1 { font-size: 40px; margin-bottom: 10px; }
+        .page-header p { font-size: 18px; opacity: 0.9; }
+
+        .applications-section { padding: 40px 0; }
+        .applications-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 25px; }
+        .app-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-right: 4px solid #1a4a6e; transition: 0.3s; }
+        .app-card:hover { transform: translateY(-5px); box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+        .app-card .app-title { font-size: 20px; font-weight: 700; color: #0d2b3e; margin-bottom: 8px; }
+        .app-card .app-company { color: #1a4a6e; font-weight: 600; margin: 4px 0; font-size: 15px; }
+        .app-card .app-company i { margin-left: 6px; }
+        .app-card .app-location { color: #6b7a8a; font-size: 14px; margin: 4px 0; }
+        .app-card .app-location i { margin-left: 6px; }
+        .app-card .app-meta { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; font-size: 13px; color: #6b7a8a; }
+        .app-card .app-meta-item { display: flex; align-items: center; gap: 6px; }
+        .app-card .app-meta-item i { color: #1a4a6e; }
+        .app-card .app-status { display: inline-block; padding: 4px 14px; border-radius: 30px; font-size: 12px; font-weight: 600; }
+        .status-pending { background: #fff8e1; color: #f57f17; }
+        .status-review { background: #e3f2fd; color: #1565c0; }
+        .status-accepted { background: #e8f5e9; color: #2e7d32; }
+        .status-rejected { background: #ffebee; color: #c62828; }
+        .status-withdrawn { background: #f3e5f5; color: #6a1b9a; }
+        .app-card .app-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid #e8edf3; flex-wrap: wrap; gap: 10px; }
+        .app-card .view-btn { background: #1a4a6e; color: #fff; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.3s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .app-card .view-btn:hover { background: #0d2b3e; transform: scale(1.04); }
+
+        .empty-state { text-align: center; padding: 80px 20px; background: #fff; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .empty-state i { font-size: 70px; color: #b0c4d9; margin-bottom: 20px; }
+        .empty-state h3 { color: #1a4a6e; font-size: 24px; margin-bottom: 10px; }
+        .empty-state p { color: #6b7a8a; font-size: 16px; margin-bottom: 20px; }
+        .empty-state .browse-btn { background: #1a4a6e; color: #fff; padding: 12px 35px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+        .empty-state .browse-btn:hover { background: #0d2b3e; transform: scale(1.05); }
+
+        .error-state { text-align: center; padding: 60px 20px; background: #fff; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .error-state i { font-size: 50px; color: #c62828; margin-bottom: 15px; }
+        .error-state p { color: #6b7a8a; font-size: 16px; margin-bottom: 20px; }
+        .error-state .retry-btn { background: #1a4a6e; color: #fff; padding: 10px 30px; border-radius: 30px; border: none; cursor: pointer; font-weight: 700; font-size: 15px; font-family: inherit; transition: 0.3s; }
+        .error-state .retry-btn:hover { background: #0d2b3e; transform: scale(1.05); }
+
+        .loading-state { text-align: center; padding: 80px 20px; background: #fff; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .loading-state i { font-size: 50px; color: #1a4a6e; margin-bottom: 20px; animation: spin 1.2s linear infinite; }
+        .loading-state p { color: #6b7a8a; font-size: 18px; font-weight: 600; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .footer { background: #0d2b3e; color: #b0c4d9; padding: 30px 0; margin-top: 40px; }
+        .footer .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .footer-social a { color: #b0c4d9; margin: 0 10px; font-size: 20px; transition: 0.3s; }
+        .footer-social a:hover { color: #ffd700; }
+
+        @media (max-width: 768px) {
+            .header .container { flex-direction: column; }
+            .applications-grid { grid-template-columns: 1fr; }
+            .page-header h1 { font-size: 28px; }
+            .app-card .app-footer { flex-direction: column; align-items: stretch; }
+            .app-card .app-footer .view-btn { width: 100%; text-align: center; justify-content: center; }
+        }
+    </style>
+    <style>.site-logo-white,.logo h1,.logo span{color:#fff!important;text-decoration:none}</style>
+</head>
+<body>
+    <!-- ===== الإشعارات ===== -->
+    <div id="notification" class="notification"></div>
+
+    <!-- ===== الهيدر الموحد ===== -->
+    {% include 'header.html' %}
+
+<div class="page-header">
+        <div class="container">
+            <h1><i class="fas fa-file-alt"></i> طلباتي</h1>
+            <p>متابعة طلبات التوظيف الخاصة بك</p>
+        </div>
+    </div>
+
+    <section class="applications-section">
+        <div class="container">
+            <div id="applicationsContainer" class="applications-grid"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 منصة التوظيف العربية - جميع الحقوق محفوظة</p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // مصادقة الهيدر وإدارة القائمة موحّدة في templates/header.html.
+
+
+        // ============================================
+        // تحميل وعرض الطلبات
+        // ============================================
+        function showLoading() {
+            const container = document.getElementById('applicationsContainer');
+            container.innerHTML = `
+                <div class="loading-state" style="grid-column:1/-1;">
+                    <i class="fas fa-spinner"></i>
+                    <p>جاري تحميل الطلبات...</p>
+                </div>
+            `;
+        }
+
+        function showEmpty() {
+            const container = document.getElementById('applicationsContainer');
+            container.innerHTML = `
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <i class="fas fa-inbox"></i>
+                    <h3>لا توجد طلبات حالياً</h3>
+                    <p>لم تتقدم لأي وظائف بعد</p>
+                    <a href="/jobs" class="browse-btn"><i class="fas fa-search"></i> تصفح الوظائف</a>
+                </div>
+            `;
+        }
+
+        function showAccessDenied(role) {
+            const container = document.getElementById('applicationsContainer');
+            const isEmployer = role === 'employer';
+            const title = isEmployer ? 'هذه الصفحة مخصصة للباحثين عن عمل' : 'لا يمكن الوصول إلى طلبات التوظيف';
+            const text = isEmployer
+                ? 'طلبات التوظيف الخاصة بالمتقدمين تُدار من لوحة صاحب العمل.'
+                : 'ليس لديك الصلاحية لعرض طلبات التوظيف.';
+            const link = isEmployer ? '/employer' : '/';
+            container.innerHTML = `
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <i class="fas fa-user-lock"></i>
+                    <h3>${title}</h3>
+                    <p>${text}</p>
+                    <a href="${link}" class="browse-btn"><i class="fas fa-arrow-left"></i> متابعة</a>
+                </div>
+            `;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>\"']/g, function(ch) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch];
+            });
+        }
+
+        function showError(message) {
+            const container = document.getElementById('applicationsContainer');
+            container.innerHTML = `
+                <div class="error-state" style="grid-column:1/-1;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>${escapeHtml(message || 'تعذر تحميل الطلبات، حاول مرة أخرى.')}</p>
+                    <button class="retry-btn" onclick="loadApplications()"><i class="fas fa-redo"></i> إعادة المحاولة</button>
+                </div>
+            `;
+        }
+
+        async function loadApplications() {
+            const container = document.getElementById('applicationsContainer');
+            showLoading();
+            try {
+                const res = await fetch('/api/applications', { credentials: 'same-origin' });
+
+                // حالة المصادقة والصلاحية تُعالج قبل محاولة تفسير البيانات.
+                if (res.status === 401) {
+                    window.location.href = '/?login=1';
+                    return;
+                }
+
+                const contentType = res.headers.get('content-type') || '';
+                let data = null;
+                if (contentType.includes('application/json')) {
+                    data = await res.json();
+                } else {
+                    throw new Error('استجابة غير صالحة من خادم طلبات التوظيف');
+                }
+
+                if (res.status === 403) {
+                    showAccessDenied(data?.role || '');
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error(data?.message || 'تعذر تحميل طلبات التوظيف');
+                }
+
+                // نجاح GET الحالي يعيد مصفوفة مباشرة للحفاظ على توافق
+                // الصفحات الأخرى التي تستخدم /api/applications.
+                if (!Array.isArray(data)) {
+                    throw new Error(
+                        data?.message ||
+                        'استجابة API لطلبات التوظيف غير متوافقة'
+                    );
+                }
+
+                if (data.length === 0) {
+                    showEmpty();
+                    return;
+                }
+
+                renderApplications(data);
+            } catch (e) {
+                console.error('applications load failed:', e);
+                showError(e?.message);
+            }
+        }
+
+        function renderApplications(applications) {
+            const container = document.getElementById('applicationsContainer');
+            container.innerHTML = applications.map(app => {
+                const statusClass = app.status === 'pending' ? 'status-pending' : 
+                                   app.status === 'accepted' ? 'status-accepted' : 
+                                   app.status === 'contacted' ? 'status-contacted' : 
+                                   app.status === 'interview' ? 'status-interview' : 
+                                   app.status === 'hired' ? 'status-hired' : 
+                                   app.status === 'rejected' ? 'status-rejected' : 
+                                   app.status === 'review' ? 'status-review' : 
+                                   app.status === 'withdrawn' ? 'status-withdrawn' : 'status-pending';
+                const statusText = app.status === 'pending' ? 'قيد الانتظار' : 
+                                  app.status === 'accepted' ? 'مقبول للتواصل' : 
+                                  app.status === 'contacted' ? 'تم التواصل' : 
+                                  app.status === 'interview' ? 'مقابلة مجدولة' : 
+                                  app.status === 'hired' ? 'تم التوظيف' : 
+                                  app.status === 'rejected' ? 'مرفوض' : 
+                                  app.status === 'review' ? 'قيد المراجعة' : 
+                                  app.status === 'withdrawn' ? 'مسحوب' : 'قيد الانتظار';
+                const locationParts = [app.neighborhood, app.city, app.country].filter(Boolean);
+                const locationText = locationParts.length ? locationParts.join('، ') : '-';
+                
+                // بيانات المنشأة المشتركة
+                let companyDataHtml = '';
+                if (app.companyDataShared) {
+                    companyDataHtml = `
+                        <div style="margin-top: 15px; padding: 15px; background: #f0f7ff; border-radius: 12px; border-right: 3px solid #1a4a6e;">
+                            <div style="font-weight: 700; color: #1a4a6e; margin-bottom: 10px; font-size: 15px;">
+                                <i class="fas fa-building"></i> بيانات المنشأة المشتركة
+                            </div>
+                            ${app.companyName ? `<div style="margin-bottom: 6px; font-size: 14px;"><strong>الاسم:</strong> ${escapeHtml(app.companyName)}</div>` : ''}
+                            ${app.companyType ? `<div style="margin-bottom: 6px; font-size: 14px;"><strong>النوع:</strong> ${escapeHtml(app.companyType)}</div>` : ''}
+                            ${app.companyEmail ? `<div style="margin-bottom: 6px; font-size: 14px;"><strong>البريد:</strong> <a href="mailto:${escapeHtml(app.companyEmail)}">${escapeHtml(app.companyEmail)}</a></div>` : ''}
+                            ${app.companyPhone ? `<div style="margin-bottom: 6px; font-size: 14px;"><strong>الهاتف:</strong> ${escapeHtml(app.companyPhone)}</div>` : ''}
+                            ${app.companyCountry || app.companyCity ? `<div style="margin-bottom: 6px; font-size: 14px;"><strong>الموقع:</strong> ${escapeHtml([app.companyNeighborhood, app.companyCity, app.companyCountry].filter(Boolean).join('، '))}</div>` : ''}
+                            ${app.companyDescription ? `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #d0e3f7; font-size: 13px; color: #4a5a6a;">${escapeHtml(app.companyDescription)}</div>` : ''}
+                        </div>
+                    `;
+                }
+                
+                return `
+                    <div class="app-card">
+                        <div class="app-title">${escapeHtml(app.jobTitle || '')}</div>
+                        <div class="app-company"><i class="fas fa-building"></i> ${escapeHtml(app.company || '')}</div>
+                        <div class="app-location"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(locationText)}</div>
+                        <div class="app-meta">
+                            <div class="app-meta-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>${escapeHtml(app.appliedAt || '')}</span>
+                            </div>
+                            <div class="app-meta-item">
+                                <span class="app-status ${statusClass}">${statusText}</span>
+                            </div>
+                        </div>
+                        ${companyDataHtml}
+                        <div class="app-footer" style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button type="button" class="view-btn" onclick="showTimeline(${JSON.stringify(app.jobId)})">📋 متابعة الطلب</button>
+                            <button type="button" class="view-btn" onclick="showInterviews()">📅 مقابلاتي</button>
+                            ${['accepted','contacted','interview','hired'].includes(app.status) || app.companyDataShared ? `<button type="button" class="view-btn" onclick="openMessagePrompt('${String(app.employerId||'').replace(/'/g,"\'")}', '${String(app.jobId||'').replace(/'/g,"\'")}')">💬 مراسلة</button>` : ''}
+                            <a href="/jobs" class="view-btn">عرض الوظائف <i class="fas fa-arrow-left"></i></a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // تحميل البيانات عند تشغيل الصفحة
+        document.addEventListener('DOMContentLoaded', async function() {
+            const accessDenied = {{ 'true' if applications_access_denied else 'false' }};
+            const role = {{ applications_user_role|tojson }};
+
+            if (accessDenied) {
+                showAccessDenied(role);
+                return;
+            }
+
+            await loadApplications();
+            const targetJob = new URLSearchParams(location.search).get('jobId');
+            if(targetJob){
+                showTimeline(targetJob);
+            }
+        });
+    </script>
+
+    <div id="appExtraModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;padding:20px;overflow:auto;"><div style="max-width:760px;margin:40px auto;background:#fff;border-radius:18px;padding:24px;position:relative;"><button onclick="closeAppExtra()" style="position:absolute;top:12px;left:12px;border:0;background:#eee;border-radius:50%;width:36px;height:36px;">✕</button><div id="appExtraContent"></div></div></div>
+<script>
+function closeAppExtra(){document.getElementById('appExtraModal').style.display='none';}
+async function showTimeline(jobId){try{const d=await fetch('/api/applications/'+encodeURIComponent(jobId)+'/timeline').then(r=>r.json());if(!d.success)throw new Error(d.message||'تعذر تحميل المتابعة');document.getElementById('appExtraContent').innerHTML='<h2>📋 متابعة الطلب</h2><div style="margin-top:18px;">'+(d.events||[]).map(e=>`<div style="padding:14px;border-right:4px solid #1a4a6e;background:#f7f9fc;margin-bottom:10px;border-radius:10px;"><strong>${escapeHtml(e.label||e.status||'')}</strong><div style="color:#777;font-size:13px;margin-top:5px;">${escapeHtml(e.at||'')}</div></div>`).join('')+'</div>';document.getElementById('appExtraModal').style.display='block';}catch(e){alert(e.message||'تعذر تحميل المتابعة');}}
+async function showInterviews(){
+ try{
+  const d=await fetch('/api/interviews').then(r=>r.json());
+  if(!d.success)throw new Error(d.message||'تعذر تحميل المقابلات');
+  const statusMeta={
+    scheduled:{label:'بانتظار تأكيد الحضور',icon:'⏳',cls:'pending'},
+    confirmed:{label:'تم تأكيد حضورك',icon:'✓',cls:'confirmed'},
+    cancelled:{label:'تم إلغاء المقابلة',icon:'×',cls:'cancelled'},
+    completed:{label:'اكتملت المقابلة',icon:'✓',cls:'completed'}
+  };
+  const cards=(d.items||[]).map(i=>{
+    const meta=statusMeta[i.status]||statusMeta.scheduled;
+    const mode=i.mode==='in_person'?'📍 حضورية':'🌐 أونلاين';
+    const actions=i.status==='scheduled'
+      ? `<div class="interview-actions"><button class="attendance-btn confirm" onclick="interviewAction('${escapeHtml(i.id)}','confirm')">✓ تأكيد الحضور</button><button class="attendance-btn decline" onclick="interviewAction('${escapeHtml(i.id)}','cancel')">اعتذار عن الحضور</button></div>`
+      : (i.status==='confirmed'?'<div class="attendance-confirmed">✓ تم تسجيل تأكيد حضورك</div>':'');
+    return `<article class="interview-card"><div class="interview-card-top"><span class="interview-type">${mode}</span><span class="interview-status ${meta.cls}">${meta.icon} ${meta.label}</span></div><h3>${escapeHtml(i.jobTitle||'مقابلة')}</h3><div class="interview-datetime"><span>📅 ${escapeHtml(i.date||'')}</span><span>⏰ ${escapeHtml(i.time||'')}</span></div>${i.location?`<div class="interview-extra">📍 ${escapeHtml(i.location)}</div>`:''}${i.meetingUrl?`<a class="meeting-link" href="${escapeHtml(i.meetingUrl)}" target="_blank" rel="noopener">🔗 فتح رابط المقابلة</a>`:''}${i.notes?`<div class="interview-notes">${escapeHtml(i.notes)}</div>`:''}${actions}</article>`;
+  }).join('')||'<div class="interview-empty">لا توجد مقابلات مجدولة حاليًا.</div>';
+  document.getElementById('appExtraContent').innerHTML='<div class="interviews-header"><div><h2>📅 مقابلاتي</h2><p>راجع مواعيدك وأكد حضورك بسهولة.</p></div></div><div class="interviews-grid">'+cards+'</div>';
+  document.getElementById('appExtraModal').style.display='block';
+ }catch(e){alert(e.message||'تعذر تحميل المقابلات');}
+}
+async function interviewAction(id,action){
+ const labels={confirm:'تأكيد الحضور',cancel:'اعتذار عن الحضور'};
+ if(!confirm(action==='confirm'?'هل تريد تأكيد حضورك لهذه المقابلة؟':'هل تريد الاعتذار عن حضور هذه المقابلة؟'))return;
+ const d=await fetch('/api/interviews',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,action})}).then(r=>r.json());
+ if(!d.success)alert(d.message||'تعذر تحديث المقابلة');else{showInterviews();loadApplications?.();}
+}
+async function openMessagePrompt(userId,jobId){
+ if(!userId){alert('لا يمكن تحديد جهة الاتصال قبل مشاركة بيانات المنشأة.');return;}
+ window.location.href=`/messages?userId=${encodeURIComponent(userId)}&jobId=${encodeURIComponent(jobId)}`;
+}
+async function submitCandidateMessage(e){
+ e.preventDefault();const modal=document.getElementById('candidateMessageModal');const text=document.getElementById('candidateMessageText').value.trim();if(!text)return;
+ const d=await fetch('/api/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:modal.dataset.user,jobId:modal.dataset.job,message:text})}).then(r=>r.json());
+ if(!d.success){alert(d.message||'تعذر إرسال الرسالة');return}modal.style.display='none';alert('تم إرسال الرسالة بنجاح.');window.location.href=`/messages?userId=${encodeURIComponent(modal.dataset.user)}&jobId=${encodeURIComponent(modal.dataset.job)}`;
+}
+</script>
+    <script>
+        (async function(){
+            try {
+                const s = await fetch('/api/settings/general').then(r => r.json());
+                document.title = s.site_name || document.title;
+                document.querySelectorAll('[data-site-name]').forEach(e => e.textContent = s.site_name || '');
+                document.querySelectorAll('[data-site-description]').forEach(e => e.textContent = s.site_description || '');
+                document.querySelectorAll('[data-contact-email]').forEach(e => e.textContent = s.contact_email || '');
+                document.querySelectorAll('[data-contact-phone]').forEach(e => e.textContent = s.contact_phone || '');
+                document.querySelectorAll('[data-address]').forEach(e => e.textContent = s.address || '');
+                document.querySelectorAll('[data-working-hours]').forEach(e => e.textContent = s.working_hours || '');
+                document.querySelectorAll('[data-top-bar]').forEach(e => e.textContent = s.top_bar_text || '');
+                document.querySelectorAll('[data-footer-text]').forEach(e => e.textContent = s.footer_text || '');
+            } catch(e) {}
+        })();
+    </script>
+    
+<section id="application-workflow-enhancement" class="application-workflow-enhancement">
+<h2>📋 إدارة طلبات التوظيف</h2>
+<p>يمكنك متابعة حالة كل طلب وسحب الطلب قبل الوصول إلى الحالات النهائية.</p>
+<div id="application-workflow-help">
+<span>⏳ قيد المراجعة</span> ← <span>مقبول</span> ← <span>📞 تم التواصل</span> ← <span>🎤 مقابلة</span> ← <span>🎉 تم التوظيف</span>
+</div>
+</section>
+<style>
+.application-workflow-enhancement{margin:20px 0;padding:18px;border-radius:16px;border:1px solid #e5e7eb;background:#fff}
+#application-workflow-help{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+</style>
+
+<div id="candidateMessageModal" class="candidate-msg-modal" style="display:none">
+ <div class="candidate-msg-card"><button type="button" class="candidate-msg-close" onclick="document.getElementById('candidateMessageModal').style.display='none'">×</button><div class="candidate-msg-icon">💬</div><h2>رسالة للمنشأة</h2><p>اكتب رسالتك حول طلب التوظيف، وستظهر في المحادثة المرتبطة بالوظيفة.</p><form onsubmit="submitCandidateMessage(event)"><textarea id="candidateMessageText" maxlength="2000" rows="6" placeholder="اكتب رسالتك..." required></textarea><div class="candidate-msg-actions"><button type="button" onclick="document.getElementById('candidateMessageModal').style.display='none'">إلغاء</button><button class="send" type="submit">إرسال الرسالة</button></div></form></div>
+</div>
+<style>
+.interviews-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.interviews-header h2{margin:0;color:#173b52}.interviews-header p{margin:5px 0;color:#7b8992;font-size:12px}.interviews-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:15px}.interview-card{background:#fff;border:1px solid #e4ebef;border-radius:18px;padding:18px;box-shadow:0 8px 24px rgba(20,55,75,.07)}.interview-card-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:12px}.interview-type{font-size:11px;font-weight:700;color:#276b87;background:#eef8fc;padding:6px 9px;border-radius:20px}.interview-status{font-size:10px;font-weight:700;padding:6px 9px;border-radius:20px}.interview-status.pending{background:#fff5df;color:#a76700}.interview-status.confirmed{background:#e8f8ee;color:#217342}.interview-status.cancelled{background:#fdecec;color:#a63c3c}.interview-status.completed{background:#edf1f5;color:#56646e}.interview-card h3{margin:0 0 12px;color:#173b52;font-size:16px}.interview-datetime{display:flex;gap:14px;font-size:12px;color:#50636e}.interview-extra,.interview-notes{margin-top:10px;padding:9px 10px;background:#f7fafb;border-radius:10px;font-size:11px;color:#61727d}.meeting-link{display:block;margin-top:12px;text-decoration:none;background:#1681b4;color:#fff;padding:10px;border-radius:11px;text-align:center;font-size:11px;font-weight:700}.interview-actions{display:flex;gap:8px;margin-top:15px}.attendance-btn{flex:1;border:0;border-radius:11px;padding:10px 8px;font:700 11px 'Tajawal';cursor:pointer}.attendance-btn.confirm{background:#168b58;color:#fff}.attendance-btn.decline{background:#f1f3f5;color:#59666f}.attendance-confirmed{margin-top:15px;padding:11px;border-radius:11px;background:#e8f8ee;color:#217342;font-size:11px;font-weight:700;text-align:center}.interview-empty{padding:35px;text-align:center;color:#87939b;background:#f8fafb;border-radius:16px}.candidate-msg-modal{position:fixed;inset:0;z-index:100500;background:rgba(10,31,43,.56);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:18px}.candidate-msg-card{position:relative;width:min(500px,100%);background:#fff;border-radius:24px;padding:28px;box-shadow:0 30px 90px rgba(8,33,48,.28);direction:rtl}.candidate-msg-close{position:absolute;left:14px;top:14px;border:0;background:#f1f4f6;width:34px;height:34px;border-radius:10px;font-size:22px;cursor:pointer}.candidate-msg-icon{font-size:28px;margin-bottom:8px}.candidate-msg-card h2{margin:0;color:#173b52}.candidate-msg-card p{font-size:12px;color:#7b8992;line-height:1.7}.candidate-msg-card textarea{width:100%;margin-top:15px;border:1px solid #dce5ea;border-radius:13px;padding:12px;font:13px 'Tajawal';resize:vertical}.candidate-msg-actions{display:flex;gap:8px;justify-content:flex-start;margin-top:12px}.candidate-msg-actions button{border:0;border-radius:11px;padding:10px 16px;cursor:pointer;font:700 12px 'Tajawal'}.candidate-msg-actions .send{background:#1681b4;color:#fff}
+</style>
+
+</body>
+</html>

@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="{{ site_lang|default("en") }}" dir="{{ site_dir|default("ltr") }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوظائف - منصة التوظيف العربية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/css/header.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fc; color: #1a2a3a; direction: rtl; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        
+        /* ===== الإشعارات ===== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: #1a4a6e;
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            z-index: 99999;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            transition: transform 0.4s ease;
+            max-width: 90%;
+            text-align: center;
+        }
+        .notification.show { transform: translateX(-50%) translateY(0); }
+        .notification.success { background: #2e7d32; }
+        .notification.error { background: #c62828; }
+        .notification.info { background: #1a4a6e; }
+
+        .page-header { background: linear-gradient(135deg, #0d2b3e, #1a4a6e); color: #fff; padding: 70px 0; text-align: center; position: relative; overflow: hidden; }
+        .page-header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%); animation: pulse 8s ease-in-out infinite; }
+        .page-header h1 { font-size: 42px; margin-bottom: 12px; position: relative; }
+        .page-header p { font-size: 18px; opacity: 0.9; position: relative; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        
+        .filters-section { background: #fff; padding: 28px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); margin-bottom: 35px; border: 1px solid #e8edf3; }
+        .save-search-btn { border:0; background:#1a4a6e; color:#fff; padding:10px 14px; border-radius:10px; cursor:pointer; font-family:inherit; font-weight:700; margin-top:8px; }
+        .save-search-btn:hover { opacity:.92; }
+        .job-detail-link{text-decoration:none;color:inherit}
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+        .filter-group { display: flex; flex-direction: column; gap: 8px; }
+        .filter-group label { font-weight: 700; font-size: 14px; color: #1a4a6e; display: flex; align-items: center; gap: 8px; }
+        .filter-group select, .filter-group input { padding: 12px 16px; border: 2px solid #e0e6ed; border-radius: 12px; font-size: 15px; background: #f8fafc; transition: 0.3s; font-family: inherit; }
+        .filter-group select:focus, .filter-group input:focus { border-color: #1a4a6e; outline: none; box-shadow: 0 0 0 3px rgba(26,74,110,0.1); }
+        
+        .jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 28px; margin: 35px 0; }
+        .job-card { background: #fff; border-radius: 20px; padding: 28px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border-right: 4px solid #1a4a6e; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .job-card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0,0,0,0.12); border-right-color: #2a6a9e; }
+        .job-card .job-title { font-size: 22px; font-weight: 800; color: #0d2b3e; margin-bottom: 10px; line-height: 1.4; }
+        .job-card .job-company { color: #1a4a6e; font-weight: 700; font-size: 15px; margin: 6px 0; display: flex; align-items: center; gap: 8px; }
+        .job-card .job-company i { color: #1a4a6e; font-size: 16px; }
+        .job-card .job-location { color: #6b7a8a; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .job-card .job-location i { color: #1a4a6e; }
+        .job-card .job-tags { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+        .job-card .job-tag { background: linear-gradient(135deg, #e8f0f8, #dce6f2); padding: 6px 16px; border-radius: 30px; font-size: 13px; color: #1a4a6e; font-weight: 600; border: 1px solid #d0dce8; }
+        .job-card .job-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 18px; border-top: 2px solid #f0f2f5; flex-wrap: wrap; gap: 12px; }
+        .job-card .job-salary { font-weight: 700; color: #1b5e20; font-size: 16px; display: flex; align-items: center; gap: 6px; }
+        .job-card .job-salary i { color: #2e7d32; }
+        .job-card .apply-btn { background: linear-gradient(135deg, #1a4a6e, #2a6a9e); color: #fff; border: none; padding: 10px 24px; border-radius: 30px; cursor: pointer; font-weight: 700; transition: all 0.3s ease; font-size: 14px; box-shadow: 0 4px 12px rgba(26,74,110,0.25); }
+        .job-card .apply-btn:hover:not(:disabled) { background: linear-gradient(135deg, #0d2b3e, #1a4a6e); transform: translateY(-2px); box-shadow: 0 6px 18px rgba(26,74,110,0.35); }
+        .job-card .apply-btn:active:not(:disabled) { transform: translateY(0); }
+        .job-card .apply-btn.applied { background: linear-gradient(135deg, #2e7d32, #1b5e20); cursor: default; box-shadow: 0 4px 12px rgba(46,125,50,0.25); }
+        .job-card .apply-btn.applied:hover { transform: none; }
+        .job-card .apply-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .job-card .favorite-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #b0c4d9; transition: all 0.3s ease; padding: 6px; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+        .job-card .favorite-btn:hover { background: rgba(255,71,87,0.1); transform: scale(1.15); }
+        .job-card .favorite-btn.active { color: #ff4757; animation: heartBeat 0.4s ease; }
+        @keyframes heartBeat { 0% { transform: scale(1); } 25% { transform: scale(1.3); } 50% { transform: scale(1); } 75% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        
+        .pagination { display: flex; justify-content: center; gap: 10px; margin: 35px 0; flex-wrap: wrap; }
+        .pagination button { padding: 10px 18px; border: 2px solid #e0e6ed; border-radius: 10px; background: #fff; cursor: pointer; transition: all 0.3s ease; font-weight: 600; color: #1a4a6e; }
+        .pagination button:hover { background: #1a4a6e; color: #fff; border-color: #1a4a6e; transform: translateY(-2px); }
+        .pagination button.active { background: #1a4a6e; color: #fff; border-color: #1a4a6e; box-shadow: 0 4px 12px rgba(26,74,110,0.25); }
+        
+        .footer { background: linear-gradient(135deg, #0d2b3e, #1a4a6e); color: #b0c4d9; padding: 35px 0; margin-top: 50px; }
+        .footer .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .footer-social a { color: #b0c4d9; margin: 0 12px; font-size: 22px; transition: all 0.3s ease; }
+        .footer-social a:hover { color: #ffd700; transform: translateY(-3px); }
+        
+        @media (max-width: 768px) {
+            .page-header { padding: 50px 0; }
+            .page-header h1 { font-size: 32px; }
+            .save-search-btn { border:0; background:#1a4a6e; color:#fff; padding:10px 14px; border-radius:10px; cursor:pointer; font-family:inherit; font-weight:700; margin-top:8px; }
+        .save-search-btn:hover { opacity:.92; }
+        .job-detail-link{text-decoration:none;color:inherit}
+        .filters-grid { grid-template-columns: 1fr; gap: 14px; }
+            .jobs-grid { grid-template-columns: 1fr; gap: 20px; }
+            .job-card { padding: 22px; }
+            .job-card .job-footer { flex-direction: column; align-items: stretch; gap: 14px; }
+            .job-card .apply-btn { width: 100%; text-align: center; justify-content: center; }
+            .job-card .favorite-btn { width: 40px; height: 40px; font-size: 20px; }
+        }
+        
+        @media (max-width: 480px) {
+            .page-header h1 { font-size: 26px; }
+            .page-header p { font-size: 15px; }
+            .job-card .job-title { font-size: 18px; }
+            .job-card .job-tag { font-size: 11px; padding: 5px 12px; }
+        }
+    </style>
+    <style>.site-logo-white,.logo h1,.logo span{color:#fff!important;text-decoration:none}</style>
+</head>
+<body>
+    <!-- ===== الإشعارات ===== -->
+    <div id="notification" class="notification"></div>
+
+    <!-- ===== الهيدر الموحد ===== -->
+    {% include 'header.html' %}
+
+<div class="page-header">
+        <div class="container">
+            <h1>🌟 جميع الوظائف</h1>
+            <p>اكتشف أحدث الفرص الوظيفية في الدول العربية</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="filters-section">
+            <div class="filters-grid">
+                <div class="filter-group"><label>🌍 الدولة</label><select id="countryFilter"><option value="all">جميع الدول</option></select></div>
+                <div class="filter-group"><label>🏙️ المدينة</label><select id="cityFilter"><option value="all">جميع المدن</option></select></div>
+                <div class="filter-group"><label>📍 الحي / المنطقة</label><select id="neighborhoodFilter"><option value="all">كل الأحياء</option></select></div>
+                <div class="filter-group"><label>🏷️ المجال</label><select id="categoryFilter"><option value="all">جميع المجالات</option></select></div>
+                <div class="filter-group"><label>🧰 المهنة</label><select id="professionFilter"><option value="all">جميع المهن</option></select></div>
+                <div class="filter-group"><label>🔎 بحث</label><input id="searchFilter" type="search" placeholder="المسمى، المهارة أو الشركة"></div>
+                <div class="filter-group"><label>↕️ الترتيب</label><select id="sortFilter"><option value="relevance">الأكثر صلة</option><option value="newest">الأحدث</option><option value="salary_high">الراتب الأعلى</option><option value="salary_low">الراتب الأقل</option></select></div>
+            </div>
+            <button class="save-search-btn" type="button" onclick="toggleAdvancedFilters()">⚙️ الفلاتر المتقدمة</button>
+            <div id="advancedFilters" style="display:none;margin-top:15px;border-top:1px solid #e8edf3;padding-top:15px">
+                <div class="filters-grid">
+                    <div class="filter-group"><label>نوع الوظيفة</label><select id="jobTypeFilter"><option value="all">الكل</option><option value="دوام كامل">دوام كامل</option><option value="دوام جزئي">دوام جزئي</option><option value="Freelance">Freelance</option><option value="تدريب">تدريب</option></select></div>
+                    <div class="filter-group"><label>عن بعد</label><select id="remoteFilter"><option value="all">الكل</option><option value="true">نعم</option><option value="false">لا</option></select></div>
+                    <div class="filter-group"><label>الخبرة</label><input id="experienceFilter" placeholder="2-5 سنوات"></div>
+                    <div class="filter-group"><label>الشركة</label><input id="companyFilter" placeholder="اسم الشركة"></div>
+                    <div class="filter-group"><label>اللغة</label><input id="languageFilter" placeholder="العربية / English"></div>
+                    <div class="filter-group"><label>الراتب الأدنى</label><input id="minSalaryFilter" type="number" min="0" placeholder="10000"></div>
+                    <div class="filter-group"><label>الراتب الأقصى</label><input id="maxSalaryFilter" type="number" min="0" placeholder="15000"></div>
+                    <div class="filter-group"><label>نشرت خلال</label><select id="daysFilter"><option value="all">أي وقت</option><option value="1">24 ساعة</option><option value="7">7 أيام</option><option value="30">30 يومًا</option></select></div>
+                    <div class="filter-group"><label>حديثو التخرج</label><select id="freshGraduateFilter"><option value="all">الكل</option><option value="true">نعم</option><option value="false">لا</option></select></div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="save-search-btn" type="button" onclick="saveCurrentSearch()">🔔 حفظ هذا البحث وتفعيل التنبيه</button><button class="save-search-btn" type="button" onclick="clearAllFilters()">مسح الفلاتر</button></div>
+            </div>
+        </section>
+
+        <div id="jobsContainer" class="jobs-grid"></div>
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2026 منصة التوظيف العربية - جميع الحقوق محفوظة</p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ============================================
+        // نظام الإشعارات (Toast)
+        // ============================================
+        function showNotification(message, type = 'info') {
+            const el = document.getElementById('notification');
+            el.textContent = message;
+            el.className = `notification ${type}`;
+            el.classList.add('show');
+            clearTimeout(el.timeout);
+            el.timeout = setTimeout(() => el.classList.remove('show'), 4000);
+        }
+
+        // ============================================
+        // حماية XSS
+        // ============================================
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : String(text);
+            return div.innerHTML;
+        }
+
+        // بيانات الوظائف
+        let jobsData = [];
+        let currentJobs = [];
+        let currentPage = 1;
+        const perPage = 6;
+        let pageUser = null;
+        let favoriteJobIds = new Set();
+        let appliedJobIds = new Set();
+
+        // ============================================
+        // تحميل المفضلة للمستخدم الحالي
+        // ============================================
+        async function loadFavorites() {
+            if (!pageUser) return;
+            try {
+                const res = await fetch('/api/favorites');
+                if (!res.ok) return;
+                const favs = await res.json();
+                favoriteJobIds = new Set((favs || []).map(j => String(j.id)));
+                renderJobs(currentJobs);
+            } catch (e) {}
+        }
+
+        // ============================================
+        // تحميل الطلبات للمستخدم الحالي
+        // ============================================
+        async function loadApplications() {
+            if (!pageUser) return;
+            try {
+                const res = await fetch('/api/applications');
+                if (!res.ok) return;
+                const apps = await res.json();
+                appliedJobIds = new Set((apps || []).map(a => String(a.jobId)));
+                renderJobs(currentJobs);
+            } catch (e) {}
+        }
+
+        // مصادقة الهيدر موحّدة في templates/header.html.
+
+
+        async function loadPageAuth() {
+            try {
+                const res = await fetch('/api/check-auth', {credentials:'same-origin', cache:'no-store'});
+                const data = await res.json();
+                pageUser = data.authenticated ? data.user : null;
+                if (pageUser) {
+                    await loadFavorites();
+                    // /api/applications مخصص للباحث عن عمل؛ صاحب المنشأة لا يجب أن يستدعيه.
+                    if (String(pageUser.role || '').toLowerCase() === 'job_seeker') {
+                        await loadApplications();
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // ============================================
+        // دوال المفضلة والطلبات
+        // ============================================
+async function toggleFavorite(jobId, event) {
+            if (!pageUser) {
+                showNotification('يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+            try {
+                const isFav = favoriteJobIds.has(String(jobId));
+                const method = isFav ? 'DELETE' : 'POST';
+                const res = await fetch('/api/favorites', {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_id: jobId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    if (isFav) {
+                        favoriteJobIds.delete(String(jobId));
+                    } else {
+                        favoriteJobIds.add(String(jobId));
+                    }
+                    // Toggle the active class on the clicked favorite button
+                    const btn = event.target.closest('.favorite-btn');
+                    if (btn) {
+                        btn.classList.toggle('active');
+                    }
+                    renderJobs(currentJobs);
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (e) {
+                showNotification('خطأ', 'error');
+            }
+        }
+
+        async function showWalletPurchaseOptions() {
+            try {
+                const res = await fetch('/api/wallet/purchase-options', {credentials:'same-origin'});
+                const d = await res.json();
+                if (!d?.success) return;
+                const old = document.getElementById('wallet-purchase-modal');
+                if (old) old.remove();
+                const modal = document.createElement('div');
+                modal.id = 'wallet-purchase-modal';
+                modal.style.cssText='position:fixed;inset:0;background:#0008;z-index:999999;display:grid;place-items:center;padding:20px';
+                modal.innerHTML=`<div style="background:#fff;width:min(620px,95%);border-radius:18px;padding:25px;direction:rtl">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                      <h2 style="margin:0">💳 شراء رصيد المحفظة</h2>
+                      <button class="btn light" onclick="document.getElementById('wallet-purchase-modal').remove()">إغلاق</button>
+                    </div>
+                    <p style="color:#667">الأسعار محسوبة حسب بلدك: <b>${d.currencyName}</b> (${d.currency}). الدفع الحقيقي غير مفعّل حالياً.</p>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
+                    ${(d.packages||[]).map(p=>`<div style="border:1px solid #ddd;border-radius:12px;padding:14px;text-align:center"><b>${p.usd} USD</b><br><strong>${p.formattedLocal}</strong><br><small>شحن تجريبي من الإدارة</small></div>`).join('')}
+                    </div>
+                </div>`;
+                document.body.appendChild(modal);
+            } catch(e) {}
+        }
+
+        async function submitApplication(jobId) {
+            try {
+                const res = await fetch('/api/applications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_id: jobId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    loadApplications();
+                } else if (res.status === 402 && data.requiresWallet) {
+                    showNotification(data.message, 'error');
+                    showWalletPurchaseOptions();
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            } catch (e) {
+                showNotification('خطأ', 'error');
+            }
+        }
+
+        async function applyJob(jobId) {
+            if (!pageUser) {
+                showNotification('يرجى تسجيل الدخول أولاً', 'error');
+                return;
+            }
+            try {
+                const statusRes = await fetch('/api/applications/sadaqah-status', {credentials:'same-origin'});
+                const status = await statusRes.json();
+                if (status?.success && status.freeApplicationsRemaining > 0) {
+                    // وقفة الخير فقط ضمن أول 3 تقديمات.
+                    SadaqahPause.show('apply', () => submitApplication(jobId));
+                } else {
+                    // بعد انتهاء الحصة المجانية: تأكيد صريح قبل الخصم.
+                    const price = status?.price?.formatted || status?.price?.usdFormatted || 'رسوم التقديم';
+                    const balance = Number(status?.walletBalance?.available || 0) / 100;
+                    const currency = status?.walletBalance?.currency || 'USD';
+                    const ok = confirm(`انتهت التقديمات المجانية الثلاث.\n\nسيتم خصم ${price} من رصيد المحفظة عند إتمام التقديم.\nالرصيد المتاح حاليًا: ${balance.toFixed(2)} ${currency}.\n\nهل تريد المتابعة؟`);
+                    if (!ok) return;
+                    await submitApplication(jobId);
+                }
+            } catch (e) {
+                showNotification('تعذر التحقق من حالة التقديم', 'error');
+            }
+        }
+
+        function getApplyButtonState(job) {
+            if (!pageUser) {
+                return { text: 'تقديم <i class="fas fa-arrow-left"></i>', cls: 'apply-btn', disabled: false, action: `applyJob(${job.id})` };
+            }
+            if (job.employerId && String(job.employerId) === String(pageUser.id)) {
+                return { text: 'وظيفتك', cls: 'apply-btn', disabled: true, action: '' };
+            }
+            if (appliedJobIds.has(String(job.id))) {
+                return { text: '✓ لقد تقدمت بالفعل', cls: 'apply-btn applied', disabled: true, action: '' };
+            }
+            return { text: 'تقديم <i class="fas fa-arrow-left"></i>', cls: 'apply-btn', disabled: false, action: `applyJob(${job.id})` };
+        }
+
+        // ============================================
+        // دوال تحميل البيانات
+        // ============================================
+        async function loadJobs() {
+            const params = new URLSearchParams({
+                q: document.getElementById('searchFilter')?.value.trim() || '',
+                country: document.getElementById('countryFilter')?.value || 'all',
+                city: document.getElementById('cityFilter')?.value || 'all',
+                category: document.getElementById('categoryFilter')?.value || 'all', profession: document.getElementById('professionFilter')?.value || 'all', neighborhood: document.getElementById('neighborhoodFilter')?.value || 'all',
+                type: document.getElementById('jobTypeFilter')?.value || 'all', remote: document.getElementById('remoteFilter')?.value || 'all',
+                experience: document.getElementById('experienceFilter')?.value || '', company: document.getElementById('companyFilter')?.value || '', language: document.getElementById('languageFilter')?.value || '',
+                min_salary: document.getElementById('minSalaryFilter')?.value || '', max_salary: document.getElementById('maxSalaryFilter')?.value || '', days: document.getElementById('daysFilter')?.value || 'all', fresh_graduate: document.getElementById('freshGraduateFilter')?.value || 'all',
+                sort: document.getElementById('sortFilter')?.value || 'relevance',
+                page: String(currentPage), per_page: String(perPage)
+            });
+            try {
+                const res = await fetch('/api/jobs/search?' + params.toString(), {credentials:'same-origin'});
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.message || 'search');
+                currentJobs = data.items || [];
+                renderJobs(currentJobs);
+                renderPagination(data.pages || 1);
+            } catch (e) {
+                showNotification('تعذر تحميل نتائج البحث', 'error');
+            }
+        }
+
+        function renderJobs(jobs) {
+            const container = document.getElementById('jobsContainer');
+
+            if (!jobs || jobs.length === 0) {
+                container.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#6b7a8a;">لا توجد وظائف حالياً</p>`;
+                return;
+            }
+
+            container.innerHTML = jobs.slice(0, 6).map(job => {
+                const isFav = favoriteJobIds.has(String(job.id));
+                const applyState = getApplyButtonState(job);
+                return `
+                    <div class="job-card">
+                        <div style="display:flex;justify-content:space-between;align-items:start;gap:12px;">
+                            <div style="flex:1;min-width:0;">
+                                <a href="/jobs/${encodeURIComponent(job.id)}" class="job-detail-link"><div class="job-title">${escapeHtml(job.title)}</div></a>
+                                <div class="job-company"><i class="fas fa-building"></i> ${job.company}</div>
+                                <div class="job-location"><i class="fas fa-map-marker-alt"></i> ${job.city}، ${job.country}</div>
+                                ${job.description ? `<div style="color:#6b7a8a;font-size:14px;margin-top:10px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${job.description}</div>` : ''}
+                            </div>
+                            <button class="favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite(${job.id}, event)" aria-label="إضافة للمفضلة">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="job-tags">
+                            ${(job.tags || []).map(t => `<span class="job-tag">#${escapeHtml(t)}</span>`).join('')}
+                        </div>
+                        <div class="job-footer">
+                            <span class="job-salary"><i class="fas fa-money-bill-wave"></i> ${job.salary}</span>
+                            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                                <button type="button" class="apply-btn" style="background:#fff;color:#1a4a6e;border:1px solid #d7e2ec;box-shadow:none" onclick="reportJob(${job.id})">⚑ إبلاغ</button>
+                                <button type="button" class="compare-btn" onclick="toggleCompare(${job.id}, event)" aria-label="إضافة للمقارنة">⚖ مقارنة</button>
+                                <button class="${applyState.cls}" onclick="${applyState.action}" ${applyState.disabled ? 'disabled' : ''}>
+                                    ${applyState.text}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+
+        async function toggleCompare(jobId, event){
+            if(event){event.preventDefault();event.stopPropagation();}
+            if(!pageUser){ showNotification('يرجى تسجيل الدخول للمقارنة','error'); return; }
+            try{
+                const state=await fetch('/api/job-compare',{credentials:'same-origin'}).then(r=>r.json());
+                const ids=new Set((state.jobIds||[]).map(String));
+                const method=ids.has(String(jobId))?'DELETE':'POST';
+                const r=await fetch('/api/job-compare',{method,headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({job_id:jobId})});
+                const d=await r.json();
+                showNotification(d.success ? (method==='POST'?'تمت إضافة الوظيفة للمقارنة':'تمت إزالتها من المقارنة') : (d.message||'تعذر تحديث المقارنة'), d.success?'success':'error');
+                if(d.success && (d.jobIds||[]).length>=2){
+                    const go=confirm('تم اختيار أكثر من وظيفة. هل تريد فتح صفحة المقارنة الآن؟');
+                    if(go) window.location.href='/compare';
+                }
+            }catch(e){ showNotification('تعذر تحديث المقارنة','error'); }
+        }
+
+        async function checkJobAlerts(){
+            if(!pageUser) return;
+            try{ await fetch('/api/job-alerts/check',{method:'POST',credentials:'same-origin'}); }catch(e){}
+        }
+
+        async function reportJob(jobId){
+            const reason=prompt('اذكر سبب الإبلاغ عن هذه الوظيفة:');
+            if(!reason)return;
+            try{const r=await fetch(`/api/jobs/${encodeURIComponent(jobId)}/report`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({reason})});const d=await r.json();alert(d.message||'تم');}catch(e){alert('تعذر إرسال البلاغ.');}
+        }
+
+        // ============================================
+        // دوال تعبئة وتحديث الفلاتر
+        // ============================================
+        async function populateFilters() {
+            // الدول والمدن والأحياء تأتي من قاعدة المواقع، لا من عدد الوظائف الحالية.
+            const countryFilter = document.getElementById('countryFilter');
+            try {
+                const loc = await fetch('/api/locations?all=1').then(r=>r.json());
+                const countries = loc.countries || [];
+                countryFilter.innerHTML = '<option value="all">جميع الدول</option>' + countries.map(c => `<option value="${c}">${c}</option>`).join('');
+            } catch(e) {}
+            const categories = [...new Set(jobsData.map(j => j.category).filter(Boolean))].sort();
+            const categoryFilter = document.getElementById('categoryFilter');
+            categoryFilter.innerHTML = '<option value="all">جميع المجالات</option>' + categories.map(c => `<option value="${c}">${c}</option>`).join('');
+            const professionFilter=document.getElementById('professionFilter');
+            try { const pd=await fetch('/api/professions').then(r=>r.json()); professionFilter.innerHTML='<option value="all">جميع المهن</option>'+(pd.items||[]).map(x=>`<option value="${x}">${x}</option>`).join(''); } catch(e) { const ps=[...new Set(jobsData.map(j=>j.profession).filter(Boolean))].sort(); professionFilter.innerHTML='<option value="all">جميع المهن</option>'+ps.map(x=>`<option value="${x}">${x}</option>`).join(''); }
+            await updateCities();
+        }
+
+        async function updateCities(){
+            const country=document.getElementById('countryFilter').value, city=document.getElementById('cityFilter');
+            try{const r=await fetch('/api/locations?all=1');const d=await r.json();let cities=[];if(country==='all'){Object.values(d.locations||{}).forEach(m=>cities.push(...Object.keys(m)));}else{cities=Object.keys((d.locations||{})[country]||{});}cities=[...new Set(cities)].sort((a,b)=>a.localeCompare(b,'ar'));city.innerHTML='<option value="all">جميع المدن</option>'+cities.map(x=>`<option value="${x}">${x}</option>`).join('');await updateNeighborhoods();}catch(e){}}
+        async function updateNeighborhoods(){
+            const country=document.getElementById('countryFilter').value, city=document.getElementById('cityFilter').value, el=document.getElementById('neighborhoodFilter');
+            try{const r=await fetch('/api/locations?all=1');const d=await r.json();let n=[];if(country==='all'){Object.values(d.locations||{}).forEach(m=>Object.values(m).forEach(a=>n.push(...a)));}else if(city==='all'){Object.values((d.locations||{})[country]||{}).forEach(a=>n.push(...a));}else{n=((d.locations||{})[country]||{})[city]||[];}n=[...new Set(n)].sort((a,b)=>a.localeCompare(b,'ar'));el.innerHTML='<option value="all">كل الأحياء</option>'+n.map(x=>`<option value="${x}">${x}</option>`).join('');}catch(e){}}
+
+        function filterJobs() { currentPage = 1; loadJobs(); }
+
+        async function saveCurrentSearch() {
+            if (!pageUser) { showNotification('سجّل الدخول لحفظ البحث وتفعيل التنبيهات', 'error'); return; }
+            const name = prompt('اسم البحث المحفوظ:', document.getElementById('searchFilter').value.trim() || 'وظائف مناسبة لي');
+            if (!name) return;
+            const filters = {
+                q: document.getElementById('searchFilter').value.trim(),
+                country: document.getElementById('countryFilter').value,
+                city: document.getElementById('cityFilter').value,
+                neighborhood: document.getElementById('neighborhoodFilter').value,
+                category: document.getElementById('categoryFilter').value, profession: document.getElementById('professionFilter')?.value || 'all', type: document.getElementById('jobTypeFilter')?.value || 'all', remote: document.getElementById('remoteFilter')?.value || 'all', experience: document.getElementById('experienceFilter')?.value || '', company: document.getElementById('companyFilter')?.value || '', language: document.getElementById('languageFilter')?.value || '', min_salary: document.getElementById('minSalaryFilter')?.value || '', max_salary: document.getElementById('maxSalaryFilter')?.value || '', days: document.getElementById('daysFilter')?.value || 'all', fresh_graduate: document.getElementById('freshGraduateFilter')?.value || 'all'
+            };
+            try {
+                const r = await fetch('/api/saved-searches', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body:JSON.stringify({name, filters, alertsEnabled:true})});
+                const d = await r.json();
+                showNotification(d.success ? 'تم حفظ البحث وتفعيل التنبيه' : (d.message || 'تعذر حفظ البحث'), d.success ? 'success' : 'error');
+            } catch(e) { showNotification('تعذر حفظ البحث', 'error'); }
+        }
+
+        
+
+        function renderPagination(pages) {
+            const el=document.getElementById('pagination'); if(!el) return; el.innerHTML='';
+            for(let p=1;p<=pages;p++){ const b=document.createElement('button'); b.textContent=p; b.className=p===currentPage?'active':''; b.onclick=()=>{currentPage=p;loadJobs();}; el.appendChild(b); }
+        }
+
+        // ============================================
+        function toggleAdvancedFilters(){const e=document.getElementById('advancedFilters');if(e)e.style.display=e.style.display==='none'?'block':'none';}
+        function clearAllFilters(){['searchFilter','experienceFilter','companyFilter','languageFilter','minSalaryFilter','maxSalaryFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});['countryFilter','cityFilter','neighborhoodFilter','categoryFilter','professionFilter','jobTypeFilter','remoteFilter','daysFilter','freshGraduateFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='all';});currentPage=1;loadJobs();}
+
+        // Event Listeners للفلاتر
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const countryFilter = document.getElementById('countryFilter');
+            const cityFilter = document.getElementById('cityFilter');
+            const neighborhoodFilter = document.getElementById('neighborhoodFilter');
+            const categoryFilter = document.getElementById('categoryFilter');
+            const searchFilter = document.getElementById('searchFilter');
+            const sortFilter = document.getElementById('sortFilter');
+            
+            // تغيير الدولة → تحديث المدن والأحياء + فلترة
+            countryFilter.addEventListener('change', function() {
+                updateCities();
+                filterJobs();
+            });
+            
+            // تغيير المدينة → تحديث الأحياء + فلترة
+            cityFilter.addEventListener('change', function() {
+                updateNeighborhoods();
+                filterJobs();
+            });
+            
+            // تغيير الحي → فلترة
+            neighborhoodFilter.addEventListener('change', filterJobs);
+            
+            // تغيير المجال → فلترة
+            categoryFilter.addEventListener('change', filterJobs);
+            document.getElementById('professionFilter')?.addEventListener('change', filterJobs);
+            
+            // البحث النصي → فلترة
+            searchFilter.addEventListener('input', (()=>{let timer; return ()=>{clearTimeout(timer); timer=setTimeout(filterJobs,350);};})());
+            if (sortFilter) sortFilter.addEventListener('change', filterJobs); ['jobTypeFilter','remoteFilter','experienceFilter','companyFilter','languageFilter','minSalaryFilter','maxSalaryFilter','daysFilter','freshGraduateFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener(e.tagName==='INPUT'?'input':'change',filterJobs);});
+        });
+
+        // ============================================
+        // بدء التطبيق
+        // ============================================
+        document.addEventListener('DOMContentLoaded', async function() {
+            await populateFilters();
+            const u=new URLSearchParams(location.search); if(u.get('q')) document.getElementById('searchFilter').value=u.get('q'); if(u.get('location')&&!u.get('q')) document.getElementById('searchFilter').value=u.get('location');
+            loadPageAuth();
+            loadJobs();
+            checkJobAlerts();
+        });
+
+        // جعل الدوال عالمية
+        window.toggleFavorite = toggleFavorite;
+        window.applyJob = applyJob;
+        window.toggleUserDropdown = toggleUserDropdown;
+        window.logout = logout;
+        window.saveCurrentSearch = saveCurrentSearch;
+        window.toggleCompare = toggleCompare;
+        
+        // استعادة الصورة من sessionStorage فوراً
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedAvatar = sessionStorage.getItem('userAvatarUrl');
+            if (savedAvatar) {
+                const userAvatar = document.getElementById('userAvatar');
+                if (userAvatar) {
+                    userAvatar.src = savedAvatar;
+                }
+            }
+        });
+    </script>
+
+    <!-- ===== مكون وقفة الخير ===== -->
+    <script src="/static/js/sadaqah_pause.js"></script>
+    
+    <script>
+        (async function(){
+            try {
+                const s = await fetch('/api/settings/general').then(r => r.json());
+                document.title = s.site_name || document.title;
+                document.querySelectorAll('[data-site-name]').forEach(e => e.textContent = s.site_name || '');
+                document.querySelectorAll('[data-site-description]').forEach(e => e.textContent = s.site_description || '');
+                document.querySelectorAll('[data-contact-email]').forEach(e => e.textContent = s.contact_email || '');
+                document.querySelectorAll('[data-contact-phone]').forEach(e => e.textContent = s.contact_phone || '');
+                document.querySelectorAll('[data-address]').forEach(e => e.textContent = s.address || '');
+                document.querySelectorAll('[data-working-hours]').forEach(e => e.textContent = s.working_hours || '');
+                document.querySelectorAll('[data-top-bar]').forEach(e => e.textContent = s.top_bar_text || '');
+                document.querySelectorAll('[data-footer-text]').forEach(e => e.textContent = s.footer_text || '');
+            } catch(e) {}
+        })();
+    </script>
+    
+<section id="smart-candidate-panel" class="smart-candidate-panel" aria-labelledby="smart-candidate-title">
+  <div class="smart-candidate-head">
+    <div>
+      <h2 id="smart-candidate-title">🎯 وظائف مناسبة لك</h2>
+      <p>اقتراحات مبنية على بيانات ملفك ومهاراتك.</p>
+    </div>
+    <button type="button" id="refresh-smart-jobs" class="btn btn-secondary">تحديث الاقتراحات</button>
+  </div>
+  <div id="smart-candidate-results" aria-live="polite">
+    <div class="smart-empty">سجّل الدخول للحصول على اقتراحات شخصية.</div>
+  </div>
+</section>
+<script>
+(async function(){
+  const box=document.getElementById('smart-candidate-results');
+  const btn=document.getElementById('refresh-smart-jobs');
+  if(!box) return;
+  async function load(){
+    try{
+      const r=await fetch('/api/candidate/smart-jobs',{credentials:'same-origin'});
+      if(r.status===401){ box.innerHTML='<div class="smart-empty">سجّل الدخول للحصول على اقتراحات شخصية.</div>'; return; }
+      const d=await r.json();
+      if(!d.items || !d.items.length){ box.innerHTML='<div class="smart-empty">لا توجد اقتراحات كافية حاليًا. أكمل ملفك المهني لتحسين النتائج.</div>'; return; }
+      box.innerHTML=d.items.map(x=>{
+        const j=x.job||{};
+        const skills=(x.matching_skills||[]).map(v=>'<span class="smart-skill">'+String(v).replace(/[<>&"]/g,'')+'</span>').join('');
+        return '<article class="smart-job-card"><div><h3>'+String(j.title||'وظيفة').replace(/[<>&"]/g,'')+'</h3><p>'+String(j.company||'').replace(/[<>&"]/g,'')+'</p><p class="smart-why">'+String(x.why||'')+'</p><div>'+skills+'</div></div><strong>'+x.match_score+'%</strong></article>';
+      }).join('');
+    }catch(e){ box.innerHTML='<div class="smart-empty">تعذر تحميل الاقتراحات حاليًا.</div>'; }
+  }
+  if(btn) btn.addEventListener('click',load);
+  load();
+})();
+</script>
+</body>
+</html>

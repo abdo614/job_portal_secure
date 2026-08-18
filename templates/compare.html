@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="{{ site_lang|default('ar') }}" dir="{{ site_dir|default('rtl') }}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مقارنة الوظائف</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+.compare-wrap{max-width:1200px;margin:40px auto;padding:20px}.compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.compare-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:22px;box-shadow:0 6px 20px rgba(0,0,0,.05)}
+.compare-card h2{margin-top:0}.compare-row{padding:10px 0;border-top:1px solid #eef2f7}.compare-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.compare-empty{text-align:center;padding:50px 20px;background:#f8fafc;border-radius:18px}
+</style>
+</head>
+<body>
+{% include 'header.html' %}
+<main class="compare-wrap">
+<h1>⚖ مقارنة الوظائف</h1>
+<p>قارن حتى ثلاث وظائف قبل اتخاذ قرار التقديم.</p>
+<div id="compare-root" aria-live="polite">جارٍ التحميل...</div>
+</main>
+<script>
+(async function(){
+ const root=document.getElementById('compare-root');
+ const esc=v=>String(v??'—').replace(/[<>&"]/g,'');
+ async function load(){
+  try{
+   const d=await fetch('/api/job-compare',{credentials:'same-origin'}).then(r=>r.json());
+   if(!d.success){root.innerHTML='<div class="compare-empty">تعذر تحميل المقارنة.</div>';return;}
+   if(!d.jobs.length){root.innerHTML='<div class="compare-empty">لم تختر وظائف للمقارنة بعد.<br><a href="/jobs">استكشف الوظائف</a></div>';return;}
+   root.innerHTML='<div class="compare-grid">'+d.jobs.map(j=>`
+    <article class="compare-card">
+      <h2>${esc(j.title)}</h2><p><strong>${esc(j.company)}</strong></p>
+      <div class="compare-row"><strong>الموقع:</strong> ${esc(j.city)}، ${esc(j.country)}</div>
+      <div class="compare-row"><strong>الراتب:</strong> ${esc(j.salary)}</div>
+      <div class="compare-row"><strong>النوع:</strong> ${esc(j.job_type||j.type)}</div>
+      <div class="compare-row"><strong>العمل عن بعد:</strong> ${j.remote?'نعم':'غير محدد'}</div>
+      <div class="compare-row"><strong>المهارات:</strong> ${esc((j.tags||j.skills||[]).join('، '))}</div>
+      <div class="compare-actions"><button type="button" onclick="removeCompare('${esc(j.id)}')">إزالة</button><a href="/jobs?job=${encodeURIComponent(j.id)}">عرض الوظيفة</a></div>
+    </article>`).join('')+'</div>';
+  }catch(e){root.innerHTML='<div class="compare-empty">تعذر تحميل المقارنة.</div>';}
+ }
+ window.removeCompare=async function(id){
+  await fetch('/api/job-compare',{method:'DELETE',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({job_id:id})});
+  load();
+ };
+ load();
+})();
+</script>
+</body></html>

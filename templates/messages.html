@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}الرسائل{% endblock %}
+{% block page_title %}💬 الرسائل{% endblock %}
+{% block page_subtitle %}محادثاتك المتعلقة بطلبات التوظيف{% endblock %}
+{% block content %}
+<section class="messages-page">
+  <div class="messages-shell">
+    <aside class="threads-panel"><div class="messages-title"><div><h1>المحادثات</h1><p>اختر محادثة للمتابعة والتواصل.</p></div></div><div class="thread-search"><i class="fas fa-search"></i><input id="threadSearch" oninput="filterThreads()" placeholder="بحث في المحادثات..."></div><div id="threads" class="threads"></div></aside>
+    <main class="conversation-panel"><div id="conversationEmpty" class="conversation-empty"><div>💬</div><h2>اختر محادثة</h2><p>اضغط على رسالة من القائمة لفتح تفاصيلها هنا.</p></div><div id="conversation" hidden></div></main>
+  </div>
+</section>
+<style>
+.messages-page{padding:30px 20px 50px;background:linear-gradient(180deg,#f4f8fb 0%,#eef4f7 100%);min-height:calc(100vh - 150px)}.messages-shell{max-width:1250px;margin:auto;display:grid;grid-template-columns:360px minmax(0,1fr);height:clamp(650px,calc(100vh - 250px),820px);min-height:650px;background:#fff;border:1px solid #dfe8ed;border-radius:28px;overflow:hidden;box-shadow:0 24px 70px rgba(20,55,75,.13)}.threads-panel{border-inline-end:1px solid #e5edf1;padding:24px;min-width:0;overflow-y:auto}.messages-title h1{margin:0;color:#173b52;font-size:28px;font-weight:800}.messages-title p{margin:7px 0 20px;color:#71818c;font-size:16px;line-height:1.6}.thread-card{width:100%;display:flex;gap:13px;text-align:right;border:0;border-bottom:1px solid #edf1f4;background:#fff;padding:16px 10px;cursor:pointer}.thread-card:hover,.thread-card.active{background:#f4f9fc}.thread-avatar{width:48px;height:48px;border-radius:13px;background:#eaf4f8;display:grid;place-items:center;flex:0 0 auto}.thread-copy{min-width:0;display:flex;flex-direction:column;gap:3px;flex:1}.thread-copy b{font-size:17px;color:#173b52}.thread-copy small{font-size:14px;color:#748390;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.thread-unread{background:#1681b4;color:#fff;border-radius:20px;font-size:12px;padding:2px 6px;height:max-content}.conversation-panel{padding:22px;background:#fbfcfd;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}.conversation-empty{height:100%;min-height:0;display:grid;place-items:center;align-content:center;text-align:center;color:#83909b}.conversation-empty>div{font-size:44px}.conversation-empty h2{color:#173b52;margin:10px 0 5px}.conversation-empty p{margin:0;font-size:15px}.conv-head{background:#fff;border:1px solid #e7edf2;border-radius:18px;padding:16px;margin-bottom:14px}.conv-head h2{margin:0;color:#173b52;font-size:21px}.conv-head small{color:#84919d;font-size:13px}.message-bubble{max-width:75%;padding:13px 16px;border-radius:16px;margin:9px 0;font-size:16px;line-height:1.75}.message-bubble.mine{margin-inline-start:auto;background:#e7f5fb;color:#17435a;border-bottom-right-radius:5px}.message-bubble.theirs{margin-inline-end:auto;background:#fff;border:1px solid #e7edf2;border-bottom-left-radius:5px}.conv-messages{flex:1;min-height:0;max-height:none;overflow-y:auto;overflow-x:hidden;padding:8px 6px;scroll-behavior:smooth}.back-to-notifs{border:0;background:#edf6fa;color:#12678d;border-radius:10px;padding:7px 10px;cursor:pointer;font-size:11px}@media(max-width:800px){.messages-page{padding:12px 10px 30px}.messages-shell{grid-template-columns:1fr;height:auto;min-height:0}.threads-panel{border-inline-end:0;border-bottom:1px solid #edf1f4;max-height:220px}.conversation-panel{height:calc(100vh - 250px);min-height:520px;padding:12px}.conversation-empty{min-height:480px}.conv-messages{min-height:0}.composer{position:relative}.message-bubble{max-width:88%}}
+.thread-search{display:flex;align-items:center;gap:8px;background:#f5f8fa;border:1px solid #e5edf1;border-radius:12px;padding:8px 10px;margin-bottom:10px}.thread-search input{border:0;background:transparent;outline:0;width:100%;font:15px 'Tajawal'}.conv-head{display:flex!important;justify-content:space-between;align-items:center;padding:12px 14px!important}.conv-head>div{display:flex;gap:10px;align-items:center}.conv-avatar{width:38px;height:38px;border-radius:12px;background:#eaf4f8;display:grid;place-items:center}.conv-refresh{border:0;background:#edf6fa;color:#12678d;width:34px;height:34px;border-radius:10px;cursor:pointer}.message-row{display:flex;margin:8px 0}.message-row.mine{justify-content:flex-start}.message-row.theirs{justify-content:flex-end}.message-bubble{max-width:min(75%,650px);padding:13px 17px;border-radius:15px;background:#eaf5f9;color:#25404f;font-size:16px;line-height:1.75}.message-row.mine .message-bubble{background:#1681b4;color:#fff;border-bottom-left-radius:5px}.message-bubble span{display:block;font-size:11px;opacity:.7;margin-top:3px}.composer{display:flex;flex:0 0 auto;gap:9px;align-items:flex-end;margin-top:12px;background:#fff;border:1px solid #e1e9ed;border-radius:16px;padding:9px}.composer textarea{flex:1;border:0;outline:0;resize:none;font:16px/1.6 'Tajawal';min-height:50px;max-height:150px;padding:6px 8px;color:#173b52;background:transparent}.composer button{border:0;background:#1681b4;color:#fff;border-radius:14px;padding:13px 20px;font:700 15px 'Tajawal';cursor:pointer}.composer button:disabled{opacity:.5}.conversation-empty-inline{text-align:center;padding:40px;color:#8a969e}.threads-empty,.msg-error{padding:25px 10px;color:#8a969e;text-align:center;font-size:12px}''</style>
+<style id="messages-ux-phase32">
+.messages-page .page-header{display:none}
+.messages-shell{height:clamp(680px,calc(100vh - 190px),860px)}
+.thread-card{padding:17px 10px}
+.conv-head h2{font-size:23px}
+.conv-head small{font-size:14px}
+.message-bubble{font-size:17px;line-height:1.8}
+.composer{min-height:66px}
+.composer textarea{font-size:17px;line-height:1.7;min-height:52px}
+.composer button{font-size:16px;padding:14px 22px;min-height:50px}
+@media(max-width:800px){
+ .messages-shell{height:calc(100vh - 180px);min-height:620px}
+ .messages-title h1{font-size:24px}
+ .messages-title p{font-size:15px}
+ .thread-copy b{font-size:16px}
+ .message-bubble{max-width:90%;font-size:16px}
+ .composer button{padding:13px 17px}
+}
+</style>
+<script>
+const CURRENT_USER_ID={{ current_user.id|tojson }};
+let activeThread={userId:null,jobId:null, timer:null};
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+async function loadThreads(selectCurrent=true){
+ const r=await fetch('/api/messages?box=1',{credentials:'same-origin'});const d=await r.json();const box=document.getElementById('threads');
+ if(!d.success){box.innerHTML='<p class="msg-error">تعذر تحميل الرسائل.</p>';return}
+ box.innerHTML=(d.threads||[]).map(t=>`<button class="thread-card ${activeThread.userId==t.userId&&activeThread.jobId==t.jobId?'active':''}" data-user="${esc(t.userId)}" data-job="${esc(t.jobId)}"><span class="thread-avatar">💬</span><span class="thread-copy"><b>${esc(t.name)}</b><small>${esc(t.lastMessage)}</small></span>${t.unread?`<span class="thread-unread">${t.unread}</span>`:''}</button>`).join('')||'<div class="threads-empty">لا توجد محادثات بعد.</div>';
+ box.querySelectorAll('.thread-card').forEach(x=>x.onclick=()=>openThread(x.dataset.user,x.dataset.job,x));
+ if(selectCurrent && !activeThread.userId){const q=new URLSearchParams(location.search);if(q.get('userId')&&q.get('jobId')){const el=[...box.querySelectorAll('.thread-card')].find(x=>x.dataset.user===q.get('userId')&&x.dataset.job===q.get('jobId'));openThread(q.get('userId'),q.get('jobId'),el)}}
+}
+function renderConversation(items){
+ const box=document.getElementById('conversation');
+ // لا تعِد إنشاء صندوق الكتابة أثناء التحديث التلقائي إذا كان المستخدم يكتب.
+ // هذا يمنع اختفاء النص/المؤشر كل 5 ثوانٍ.
+ const oldComposer=document.getElementById('composerText');
+ const draft=oldComposer ? oldComposer.value : '';
+ const wasFocused=oldComposer && document.activeElement===oldComposer;
+ const selectionStart=oldComposer ? oldComposer.selectionStart : 0;
+ const selectionEnd=oldComposer ? oldComposer.selectionEnd : 0;
+
+ box.innerHTML=`<div class="conv-head"><div><div class="conv-avatar">💬</div><div><h2>محادثة طلب التوظيف</h2><small>المراسلات المرتبطة بهذه الوظيفة</small></div></div><button class="conv-refresh" onclick="refreshActiveThread()">↻</button></div><div id="convMessages" class="conv-messages">${(items||[]).map(m=>`<div class="message-row ${String(m.senderId)==String(CURRENT_USER_ID)?'mine':'theirs'}"><div class="message-bubble">${esc(m.message)}<span>${esc((m.createdAt||'').replace('T',' ').slice(0,16))}${String(m.senderId)==String(CURRENT_USER_ID)?(m.read?' · مقروء':' · مرسلة'):''}</span></div></div>`).join('')||'<div class="conversation-empty-inline">ابدأ المحادثة برسالة جديدة.</div>'}</div><form id="composer" class="composer" onsubmit="sendMessage(event)"><textarea id="composerText" maxlength="2000" rows="2" placeholder="اكتب رسالتك... (Enter للإرسال، Shift+Enter لسطر جديد)" required></textarea><button type="submit">إرسال <i class="fas fa-paper-plane"></i></button></form>`;
+
+ const cm=document.getElementById('convMessages');
+ cm.scrollTop=cm.scrollHeight;
+
+ const composerText=document.getElementById('composerText');
+ // استعادة المسودة ومكان المؤشر بعد أي تحديث تلقائي.
+ if(draft){
+   composerText.value=draft;
+   const pos=Math.min(selectionStart,draft.length);
+   const end=Math.min(selectionEnd,draft.length);
+   if(wasFocused){
+     composerText.focus({preventScroll:true});
+     try{composerText.setSelectionRange(pos,end)}catch(_){}
+   }
+ }
+ composerText.addEventListener('keydown',e=>{
+   if(e.key==='Enter'&&!e.shiftKey){
+     e.preventDefault();
+     const form=document.getElementById('composer');
+     if(form && !form.dataset.sending){
+       if(typeof form.requestSubmit==='function') form.requestSubmit();
+       else sendMessage({preventDefault:()=>{}, submitter:document.querySelector('#composer button[type=submit]')});
+     }
+   }
+ });
+}
+async function refreshActiveThread(){
+ if(!activeThread.userId)return;
+ const r=await fetch(`/api/messages?userId=${encodeURIComponent(activeThread.userId)}&jobId=${encodeURIComponent(activeThread.jobId)}`,{credentials:'same-origin'});const d=await r.json();
+ if(!d.success)return;renderConversation(d.items||[]);loadThreads(false);
+}
+async function openThread(userId,jobId,el){
+ activeThread={userId:String(userId),jobId:String(jobId),timer:activeThread.timer};
+ document.querySelectorAll('.thread-card').forEach(x=>x.classList.remove('active'));el?.classList.add('active');
+ document.getElementById('conversationEmpty').hidden=true;document.getElementById('conversation').hidden=false;
+ await refreshActiveThread();clearInterval(activeThread.timer);activeThread.timer=setInterval(refreshActiveThread,5000);
+}
+async function sendMessage(e){
+ e?.preventDefault?.();
+ const textarea=document.getElementById('composerText');
+ const form=document.getElementById('composer');
+ const btn=e?.submitter || form?.querySelector('button[type=submit]');
+ const text=(textarea?.value||'').trim();
+ if(!text||!activeThread.userId||form?.dataset.sending)return;
+ if(form)form.dataset.sending='1';
+ if(btn)btn.disabled=true;
+ try{
+   const r=await fetch('/api/messages',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({userId:activeThread.userId,jobId:activeThread.jobId,message:text})});
+   const d=await r.json();
+   if(!d.success){alert(d.message||'تعذر إرسال الرسالة');return}
+   if(textarea)textarea.value='';
+   await refreshActiveThread();
+   loadThreads(false);
+ }catch(err){console.error(err);alert('تعذر إرسال الرسالة');}
+ finally{if(btn)btn.disabled=false;if(form)delete form.dataset.sending}
+}
+function filterThreads(){
+ const q=document.getElementById('threadSearch').value.trim().toLowerCase();
+ document.querySelectorAll('.thread-card').forEach(x=>x.style.display=x.innerText.toLowerCase().includes(q)?'flex':'none');
+}
+loadThreads();setInterval(()=>loadThreads(false),10000);
+window.addEventListener('beforeunload',()=>clearInterval(activeThread.timer));
+</script>
+{% endblock %}

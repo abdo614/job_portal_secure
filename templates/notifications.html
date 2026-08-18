@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}الإشعارات{% endblock %}
+{% block content %}
+<section class="notifications-page">
+  <div class="notifications-hero"><div><span class="eyebrow">مركز التنبيهات</span><h1>🔔 الإشعارات</h1><p>كل ما يهمك عن طلبات التوظيف والمقابلات والرسائل والدفع في مكان واحد.</p></div><button id="readAll" class="notify-read-all">✓ تحديد الكل كمقروء</button></div>
+  <div class="notification-layout">
+    <main><div id="items" class="notification-list"></div></main>
+    <aside class="notification-preferences"><div class="pref-card"><h2>⚙️ تفضيلات الإشعارات</h2><p>اختر القنوات التي تريد استقبال التنبيهات عبرها.</p><div id="prefs" class="prefs-grid"></div><button id="savePrefs" class="notify-save">حفظ الإعدادات</button></div></aside>
+  </div>
+</section>
+<style>
+.notifications-page{max-width:1100px;margin:28px auto 60px}.notifications-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;padding:26px 28px;background:linear-gradient(135deg,#173b52,#126f95);border-radius:24px;color:#fff;box-shadow:0 18px 45px rgba(18,69,91,.16)}.eyebrow{font-size:10px;opacity:.72}.notifications-hero h1{margin:6px 0;font-size:28px}.notifications-hero p{margin:0;opacity:.84;font-size:12px}.notify-read-all,.notify-save{border:0;border-radius:12px;padding:11px 15px;background:#fff;color:#173b52;font:700 11px 'Tajawal';cursor:pointer}.notification-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;margin-top:18px}.notification-list{display:flex;flex-direction:column;gap:10px}.notification-item{display:flex;gap:13px;align-items:flex-start;padding:16px;background:#fff;border:1px solid #e4ebef;border-radius:17px;cursor:pointer;transition:.16s;box-shadow:0 5px 18px rgba(20,55,75,.04)}.notification-item:hover{transform:translateY(-1px);box-shadow:0 9px 25px rgba(20,55,75,.08)}.notification-item.unread{border-right:4px solid #1681b4;background:#fbfeff}.notification-icon{width:42px;height:42px;border-radius:14px;background:#edf7fb;display:grid;place-items:center;font-size:20px;flex:0 0 auto}.notification-copy{min-width:0;flex:1}.notification-copy h3{margin:0;color:#173b52;font-size:13px}.notification-copy p{margin:5px 0;color:#63747f;font-size:11px;line-height:1.7}.notification-copy time{color:#9aa5ac;font-size:9px}.notification-dot{width:8px;height:8px;border-radius:50%;background:#1681b4;margin-top:6px}.notification-empty{padding:60px 20px;text-align:center;background:#fff;border:1px dashed #dce6eb;border-radius:18px;color:#87939b}.pref-card{background:#fff;border:1px solid #e4ebef;border-radius:18px;padding:18px;position:sticky;top:20px}.pref-card h2{margin:0;color:#173b52;font-size:16px}.pref-card>p{font-size:11px;color:#7b8992;line-height:1.6}.prefs-grid{display:flex;flex-direction:column;gap:8px;margin:15px 0}.pref-option{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border:1px solid #edf1f3;border-radius:12px;font-size:11px;color:#40535f}.pref-option input{accent-color:#1681b4}.notify-save{background:#1681b4;color:#fff;width:100%}@media(max-width:800px){.notification-layout{grid-template-columns:1fr}.pref-card{position:static}.notifications-hero{align-items:stretch;flex-direction:column}.notify-read-all{align-self:flex-start}}
+</style>
+<script>
+const notifLabels={site:'داخل الموقع',telegram:'Telegram',email:'البريد الإلكتروني',jobs:'الوظائف',applications:'طلبات التوظيف',interviews:'المقابلات',messages:'الرسائل',payments:'الدفع',wallet:'المحفظة',security:'الأمان',marketing:'العروض والتسويق'};
+const notifIcons={message:'💬',application:'📄',interview:'📅',payment:'💳',wallet:'💰',security:'🛡️'};
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function icon(k){return notifIcons[k]||'🔔'}
+async function loadNotifications(){
+ const [a,b]=await Promise.all([fetch('/api/notifications'),fetch('/api/notification-preferences')]);const n=await a.json(),p=await b.json();
+ document.getElementById('items').innerHTML=(n.items||[]).map(x=>`<article class="notification-item ${x.read?'':'unread'}" data-id="${esc(x.id)}" data-link="${esc(x.link||'')}"><span class="notification-icon">${icon(x.kind)}</span><div class="notification-copy"><h3>${esc(x.title||'تنبيه')}</h3><p>${esc(x.message||'')}</p><time>${esc((x.createdAt||'').replace('T',' ').slice(0,16))}</time></div>${x.read?'':'<span class="notification-dot"></span>'}</article>`).join('')||'<div class="notification-empty">🔕<br><br>لا توجد إشعارات جديدة.</div>';
+ document.getElementById('prefs').innerHTML=Object.entries(p.preferences||{}).map(([k,v])=>`<label class="pref-option"><span>${esc(notifLabels[k]||k)}</span><input type="checkbox" data-key="${esc(k)}" ${v?'checked':''} ${k==='site'?'disabled':''}></label>`).join('');
+ document.querySelectorAll('.notification-item').forEach(el=>el.onclick=async()=>{if(!el.classList.contains('unread')){if(el.dataset.link)location.href=el.dataset.link;return}await fetch('/api/notifications',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:el.dataset.id})});const link=el.dataset.link;el.classList.remove('unread');el.querySelector('.notification-dot')?.remove();if(link)location.href=link;});
+}
+document.getElementById('readAll').onclick=async()=>{await fetch('/api/notifications',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({all:true})});loadNotifications()};
+document.getElementById('savePrefs').onclick=async()=>{const payload={};document.querySelectorAll('#prefs input').forEach(x=>payload[x.dataset.key]=x.checked);const r=await fetch('/api/notification-preferences',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const d=await r.json();alert(d.success?'تم حفظ إعدادات الإشعارات':'تعذر حفظ الإعدادات')};
+loadNotifications();setInterval(loadNotifications,15000);
+</script>
+{% endblock %}
