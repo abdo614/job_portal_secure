@@ -83,27 +83,57 @@ def get_mail_settings():
 def send_email(to_email, subject, body, html=None):
     if not to_email:
         return False
+
     try:
-        import smtplib
-        from email.message import EmailMessage
-        cfg = get_mail_settings()
-        if not cfg.get("smtp_password"):
-            logger.warning("SMTP password not configured; skipping send")
+        import requests
+
+        api_key = os.environ.get("MAILGUN_API_KEY")
+        domain = os.environ.get("MAILGUN_DOMAIN")
+        base_url = os.environ.get("MAILGUN_BASE_URL", "https://api.mailgun.net").rstrip("/")
+
+        if not api_key:
+            logger.warning("MAILGUN_API_KEY is not configured; skipping email")
             return False
-        msg = EmailMessage()
-        msg["Subject"] = subject
-        msg["From"] = cfg.get("mail_from") or cfg.get("smtp_user")
-        msg["To"] = to_email
-        msg.set_content(body)
+
+        if not domain:
+            logger.warning("MAILGUN_DOMAIN is not configured; skipping email")
+            return False
+
+        mail_from = os.environ.get(
+            "MAIL_FROM",
+            f"Mailgun Sandbox <postmaster@{domain}>"
+        )
+
+        data = {
+            "from": mail_from,
+            "to": to_email,
+            "subject": subject,
+            "text": body,
+        }
+
         if html:
-            msg.add_alternative(html, subtype="html")
-        with smtplib.SMTP(cfg["smtp_host"], cfg["smtp_port"], timeout=20) as s:
-            s.starttls()
-            s.login(cfg["smtp_user"], cfg["smtp_password"])
-            s.send_message(msg)
-        return True
+            data["html"] = html
+
+        response = requests.post(
+            f"{base_url}/v3/{domain}/messages",
+            auth=("api", api_key),
+            data=data,
+            timeout=20,
+        )
+
+        if response.ok:
+            logger.info("Email sent successfully via Mailgun to %s", to_email)
+            return True
+
+        logger.error(
+            "Mailgun email failed: status=%s response=%s",
+            response.status_code,
+            response.text[:1000],
+        )
+        return False
+
     except Exception:
-        logger.exception("Email sending failed")
+        logger.exception("Mailgun email sending failed")
         return False
 
 app = Flask(__name__)
