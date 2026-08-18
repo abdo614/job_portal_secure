@@ -3,10 +3,10 @@
 The application stores each logical dataset as an encrypted JSON payload in
 PostgreSQL. Encryption remains Fernet-based using the existing ENCRYPTION_KEY.
 
-PostgreSQL is the preferred backend when STORAGE_BACKEND=postgres. If the
-PostgreSQL dependency, URL, or initial connection/schema setup is unavailable
-at startup, the manager falls back to the existing encrypted data/*.enc files.
-The local files are never deleted or modified by the PostgreSQL backend.
+When STORAGE_BACKEND=postgres, PostgreSQL is authoritative. This backend never
+falls back to data/*.enc: a database/configuration failure must be visible at
+startup rather than silently serving incomplete local data.
+The local encrypted files are never deleted or modified by this backend.
 """
 from __future__ import annotations
 
@@ -14,7 +14,6 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from pathlib import Path
 
 from cryptography.fernet import Fernet
 
@@ -29,34 +28,36 @@ class PostgresEncryptionManager:
         self.cipher = Fernet(key)
         self.database_url = os.environ.get("DATABASE_URL", "").strip()
         self.psycopg = None
-        self._local_fallback = False
-        self._local_data_dir = Path(
-            os.environ.get("DATA_DIR", str(Path(__file__).resolve().parent / "data"))
-        ).expanduser()
+
+        if not self.database_url:
+            raise RuntimeError(
+                "STORAGE_BACKEND=postgres but DATABASE_URL is not configured"
+            )
 
         try:
-            if not self.database_url:
-                raise RuntimeError("DATABASE_URL is not configured")
             import psycopg
+        except Exception as exc:
+            raise RuntimeError(
+                "STORAGE_BACKEND=postgres requires the psycopg package"
+            ) from exc
 
-            self.psycopg = psycopg
+        self.psycopg = psycopg
+        try:
             if ensure_schema:
                 self._ensure_schema()
-            logger.info("🗄️ PostgreSQL storage initialized")
         except Exception as exc:
-            self._local_fallback = True
-            logger.warning(
-                "⚠️ PostgreSQL unavailable at startup; using encrypted local storage fallback: %s",
-                exc,
-            )
+            raise RuntimeError(
+                "STORAGE_BACKEND=postgres could not initialize the PostgreSQL schema"
+            ) from exc
+
+        self._install_legacy_storage_bridge()
+        logger.info("🗄️ PostgreSQL storage initialized (authoritative backend)")
 
     @property
     def using_postgres(self) -> bool:
-        return not self._local_fallback
+        return True
 
     def _connect(self):
-        if self.psycopg is None:
-            raise RuntimeError("PostgreSQL backend is unavailable")
         return self.psycopg.connect(self.database_url)
 
     def _ensure_schema(self):
@@ -74,8 +75,6 @@ class PostgresEncryptionManager:
             conn.commit()
 
     def schema_exists(self):
-        if self._local_fallback:
-            return False
         try:
             with self._connect() as conn:
                 with conn.cursor() as cur:
@@ -93,8 +92,7 @@ class PostgresEncryptionManager:
             return False
 
     def ensure_schema(self):
-        if not self._local_fallback:
-            self._ensure_schema()
+        self._ensure_schema()
 
     def encrypt_data(self, data):
         if isinstance(data, (dict, list)):
@@ -135,32 +133,7 @@ class PostgresEncryptionManager:
             return valid
         return data
 
-    def _local_encrypt_file(self, filename, data):
-        try:
-            self._local_data_dir.mkdir(parents=True, exist_ok=True)
-            target = self._local_data_dir / f"{filename}.enc"
-            temp = self._local_data_dir / f".{filename}.enc.tmp"
-            temp.write_bytes(self.encrypt_data(data))
-            os.replace(temp, target)
-            return True
-        except Exception:
-            logger.exception("❌ Failed to save local encrypted collection: %s", filename)
-            return False
-
-    def _local_decrypt_file(self, filename):
-        try:
-            encrypted = (self._local_data_dir / f"{filename}.enc").read_bytes()
-            return self._sanitize_collection(filename, self.decrypt_data(encrypted))
-        except FileNotFoundError:
-            return None
-        except Exception:
-            logger.exception("❌ Failed to read local encrypted collection: %s", filename)
-            return None
-
     def encrypt_file(self, filename, data):
-        if self._local_fallback:
-            return self._local_encrypt_file(filename, data)
-
         payload = self.encrypt_data(data)
         try:
             with self._connect() as conn:
@@ -183,9 +156,6 @@ class PostgresEncryptionManager:
             return False
 
     def decrypt_file(self, filename):
-        if self._local_fallback:
-            return self._local_decrypt_file(filename)
-
         try:
             with self._connect() as conn:
                 with conn.cursor() as cur:
@@ -195,20 +165,15 @@ class PostgresEncryptionManager:
                     )
                     row = cur.fetchone()
             if not row:
+                logger.warning("⚠️ مجموعة PostgreSQL غير موجودة: %s", filename)
                 return None
-            return self._sanitize_collection(filename, self.decrypt_data(row[0]))
+            data = self.decrypt_data(row[0])
+            return self._sanitize_collection(filename, data)
         except Exception:
             logger.exception("❌ فشل قراءة المجموعة من PostgreSQL: %s", filename)
             return None
 
     def list_collections(self):
-        if self._local_fallback:
-            return [
-                (path.stem, datetime.fromtimestamp(path.stat().st_mtime, timezone.utc))
-                for path in sorted(self._local_data_dir.glob("*.enc"))
-                if path.is_file()
-            ]
-
         try:
             with self._connect() as conn:
                 with conn.cursor() as cur:
@@ -219,3 +184,31 @@ class PostgresEncryptionManager:
         except Exception:
             logger.exception("❌ Failed to list PostgreSQL collections")
             return []
+
+    def _install_legacy_storage_bridge(self):
+        """Redirect already-created file-backend instances to PostgreSQL.
+
+        ``encryption.py`` historically creates ``SecureStorage`` before it
+        swaps ``secure_storage.encryption`` to PostgreSQL. Other modules may
+        also retain a reference to the original ``EncryptionManager`` object.
+        Without this bridge those references continue calling ``data/*.enc``
+        and produce the exact local-file warnings seen on Render.
+        """
+        try:
+            from encryption import EncryptionManager
+        except Exception as exc:
+            raise RuntimeError(
+                "PostgreSQL backend could not install the legacy storage bridge"
+            ) from exc
+
+        backend = self
+
+        def encrypt_file(_legacy_self, filename, data):
+            return backend.encrypt_file(filename, data)
+
+        def decrypt_file(_legacy_self, filename):
+            return backend.decrypt_file(filename)
+
+        EncryptionManager.encrypt_file = encrypt_file
+        EncryptionManager.decrypt_file = decrypt_file
+        logger.info("🔁 تم تحويل مراجع EncryptionManager القديمة إلى PostgreSQL")

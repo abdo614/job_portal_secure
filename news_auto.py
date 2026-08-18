@@ -29,8 +29,6 @@ DEFAULT_INTERVAL_MINUTES = 30
 MAX_ITEMS_PER_FEED = 12
 MAX_PUBLISHED_PER_RUN = 10
 
-# Public RSS endpoints.  Google News RSS is used only as a discovery feed;
-# the published entry always links to the original source URL when available.
 DEFAULT_FEEDS = [
     "https://news.google.com/rss/search?q=employment+jobs+labor+market+recruitment&hl=en-US&gl=US&ceid=US:en",
     "https://news.google.com/rss/search?q=وظائف+توظيف+سوق+العمل&hl=ar&gl=SA&ceid=SA:ar",
@@ -115,7 +113,6 @@ def _fingerprint(item: dict) -> str:
 
 def _summary(item: dict) -> str:
     """Create a short original summary without copying article text."""
-    title = _normalize(item.get("title", ""))
     source = _normalize(item.get("source", ""))
     return f"خبر متعلق بسوق العمل والتوظيف، وفقاً للمصدر {source}. لمعرفة التفاصيل الكاملة راجع المصدر الأصلي."
 
@@ -198,10 +195,8 @@ def register_news_automation(app, storage):
 
     @app.route("/api/admin/news/auto/status", methods=["GET"])
     def news_auto_status():
-        # Avoid importing app.py's decorator here; use the same session helper already available on app.
         from flask import jsonify, session
-        from encryption import secure_storage
-        users = secure_storage.load_users() or []
+        users = storage.load_users() or []
         actor = next((u for u in users if str(u.get("id")) == str(session.get("user_id"))), None)
         if not actor or actor.get("role") != "admin":
             return jsonify({"success": False, "message": "غير مصرح"}), 401
