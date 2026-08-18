@@ -1,0 +1,1 @@
+Temporary trigger for the Mailgun migration workflow. This file can be removed after the workflow runs.
