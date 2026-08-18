@@ -58,6 +58,22 @@ class EncryptionManager:
         DATA_DIR.mkdir(parents=True, exist_ok=True)
         key_file = DATA_DIR / '.key'
         
+        # 1) أولوية: مفتاح من متغير البيئة (للاستضافة السحابية)
+        env_key = os.environ.get('ENCRYPTION_KEY', '').strip()
+        if env_key:
+            try:
+                key = env_key.encode('utf-8')
+                # التأكد من صلاحية المفتاح
+                Fernet(key)
+                logger.info("🔑 تم تحميل مفتاح التشفير من متغير البيئة")
+                # حفظ المفتاح محلياً أيضاً لضمان التوافق مع النسخ الاحتياطية
+                if not os.path.exists(key_file):
+                    with open(key_file, 'wb') as f:
+                        f.write(key)
+                return key
+            except Exception as e:
+                logger.error(f"⚠️ مفتاح التشفير من البيئة غير صالح: {str(e)}")
+        
         # التأكد من وجود مجلد data
         DATA_DIR.mkdir(parents=True, exist_ok=True)
         

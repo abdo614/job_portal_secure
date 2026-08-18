@@ -95,7 +95,6 @@ DEMO_ENVIRONMENT_AR.md
 DEMO_DATA_UPDATE*.md
 
 # Demo/test scripts not for production
-demo_repair.py
 fix_users.py
 patch_step9.py
 phase4_patch.py
@@ -106,7 +105,6 @@ TESTT.py
 check_sizes.py
 check_admin_template*.py
 site_scanner.py
-error_log.py
 
 # Temporary test artifacts
 cleanup_reports/
