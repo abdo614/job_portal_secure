@@ -50,6 +50,7 @@ class PostgresEncryptionManager:
                 "STORAGE_BACKEND=postgres could not initialize the PostgreSQL schema"
             ) from exc
 
+        self._install_legacy_storage_bridge()
         logger.info("🗄️ PostgreSQL storage initialized (authoritative backend)")
 
     @property
@@ -183,3 +184,31 @@ class PostgresEncryptionManager:
         except Exception:
             logger.exception("❌ Failed to list PostgreSQL collections")
             return []
+
+    def _install_legacy_storage_bridge(self):
+        """Redirect already-created file-backend instances to PostgreSQL.
+
+        ``encryption.py`` historically creates ``SecureStorage`` before it
+        swaps ``secure_storage.encryption`` to PostgreSQL. Other modules may
+        also retain a reference to the original ``EncryptionManager`` object.
+        Without this bridge those references continue calling ``data/*.enc``
+        and produce the exact local-file warnings seen on Render.
+        """
+        try:
+            from encryption import EncryptionManager
+        except Exception as exc:
+            raise RuntimeError(
+                "PostgreSQL backend could not install the legacy storage bridge"
+            ) from exc
+
+        backend = self
+
+        def encrypt_file(_legacy_self, filename, data):
+            return backend.encrypt_file(filename, data)
+
+        def decrypt_file(_legacy_self, filename):
+            return backend.decrypt_file(filename)
+
+        EncryptionManager.encrypt_file = encrypt_file
+        EncryptionManager.decrypt_file = decrypt_file
+        logger.info("🔁 تم تحويل مراجع EncryptionManager القديمة إلى PostgreSQL")
