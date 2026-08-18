@@ -15,26 +15,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Patch email sender and Render variables
+      - name: Patch app.py and render.yaml
         shell: python
         run: |
           from pathlib import Path
           import re
+          import py_compile
 
           p = Path('app.py')
           s = p.read_text(encoding='utf-8')
 
           pattern = re.compile(r'def send_email\(to_email, subject, body, html=None\):.*?\n\napp = Flask\(__name__\)', re.S)
           replacement = '''def send_email(to_email, subject, body, html=None):
-              """Send email through Mailgun HTTPS API.
+              """Send mail through Mailgun HTTPS API.
 
-              Render Free blocks outbound SMTP ports, so OTP and other mail
-              must use HTTPS instead of smtplib.
-              Required environment variables:
-                MAILGUN_API_KEY
-                MAILGUN_DOMAIN
-                MAILGUN_BASE_URL (optional; defaults to https://api.mailgun.net)
-                MAIL_FROM (optional; defaults to Mailgun sandbox postmaster)
+              Render Free blocks outbound SMTP ports, so OTP and other email
+              use HTTPS instead of smtplib.
               """
               if not to_email:
                   return False
@@ -44,11 +40,16 @@ jobs:
 
                   api_key = os.environ.get("MAILGUN_API_KEY", "").strip()
                   domain = os.environ.get("MAILGUN_DOMAIN", "").strip()
-                  base_url = os.environ.get("MAILGUN_BASE_URL", "https://api.mailgun.net").rstrip("/")
+                  base_url = os.environ.get(
+                      "MAILGUN_BASE_URL", "https://api.mailgun.net"
+                  ).rstrip("/")
                   mail_from = os.environ.get("MAIL_FROM", "").strip()
 
                   if not api_key or not domain:
-                      logger.error("Mailgun is not configured: MAILGUN_API_KEY or MAILGUN_DOMAIN is missing")
+                      logger.error(
+                          "Mailgun configuration missing: "
+                          "MAILGUN_API_KEY or MAILGUN_DOMAIN"
+                      )
                       return False
 
                   if not mail_from:
@@ -84,33 +85,29 @@ jobs:
           s = pattern.sub(replacement, s, count=1)
           p.write_text(s, encoding='utf-8')
 
+          py_compile.compile('app.py', doraise=True)
+
           r = Path('render.yaml')
           if r.exists():
               rs = r.read_text(encoding='utf-8')
               for key in ('SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASSWORD'):
-                  rs = re.sub(rf'\n\s*- key: {key}\n\s*sync: false', '', rs)
-              marker = '      - key: MAIL_FROM\n        sync: false'
-              if marker in rs:
-                  rs = rs.replace(marker, marker + '\n      - key: MAILGUN_API_KEY\n        sync: false\n      - key: MAILGUN_DOMAIN\n        sync: false\n      - key: MAILGUN_BASE_URL\n        value: "https://api.mailgun.net"')
-              else:
-                  rs = rs.replace('    envVars:\n', '    envVars:\n      - key: MAILGUN_API_KEY\n        sync: false\n      - key: MAILGUN_DOMAIN\n        sync: false\n      - key: MAILGUN_BASE_URL\n        value: "https://api.mailgun.net"\n')
+                  rs = re.sub(rf'\n\s*- key: {key}\n\s*(?:value:.*\n\s*)?sync: false', '', rs)
+              if 'key: MAILGUN_API_KEY' not in rs:
+                  marker = '      - key: MAIL_FROM\n        sync: false'
+                  addition = ('\n      - key: MAILGUN_API_KEY\n        sync: false\n'
+                              '      - key: MAILGUN_DOMAIN\n        sync: false\n'
+                              '      - key: MAILGUN_BASE_URL\n        value: "https://api.mailgun.net"')
+                  if marker in rs:
+                      rs = rs.replace(marker, marker + addition, 1)
+                  else:
+                      rs = rs.replace('    envVars:\n', '    envVars:\n' + addition.lstrip('\n') + '\n', 1)
               r.write_text(rs, encoding='utf-8')
-          
-      - name: Commit changes
+
+      - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add app.py render.yaml
-          git diff --cached --quiet && exit 0
+          if git diff --cached --quiet; then exit 0; fi
           git commit -m "fix: use Mailgun HTTPS for email"
           git push
-
-      - name: Remove temporary workflow
-        if: always()
-        shell: bash
-        run: |
-          git rm -f .github/workflows/apply-mailgun-fix.yml || true
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: remove temporary Mailgun migration workflow" || true
-          git push || true
