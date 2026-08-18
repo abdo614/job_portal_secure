@@ -116,6 +116,25 @@ class PostgresEncryptionManager:
             logger.exception("❌ PostgreSQL payload decryption failed")
             return None
 
+    @staticmethod
+    def _sanitize_collection(filename, data):
+        """Keep collection reads resilient to malformed legacy records.
+
+        The application expects jobs to be dictionaries. A malformed record
+        must not make /api/stats fail and turn every homepage counter into 0.
+        The stored PostgreSQL payload is not modified by this sanitization.
+        """
+        if filename == "jobs" and isinstance(data, list):
+            valid = [item for item in data if isinstance(item, dict)]
+            removed = len(data) - len(valid)
+            if removed:
+                logger.warning(
+                    "⚠️ Ignored %s malformed job record(s) while reading jobs",
+                    removed,
+                )
+            return valid
+        return data
+
     def _local_encrypt_file(self, filename, data):
         try:
             self._local_data_dir.mkdir(parents=True, exist_ok=True)
@@ -131,7 +150,7 @@ class PostgresEncryptionManager:
     def _local_decrypt_file(self, filename):
         try:
             encrypted = (self._local_data_dir / f"{filename}.enc").read_bytes()
-            return self.decrypt_data(encrypted)
+            return self._sanitize_collection(filename, self.decrypt_data(encrypted))
         except FileNotFoundError:
             return None
         except Exception:
@@ -177,7 +196,7 @@ class PostgresEncryptionManager:
                     row = cur.fetchone()
             if not row:
                 return None
-            return self.decrypt_data(row[0])
+            return self._sanitize_collection(filename, self.decrypt_data(row[0]))
         except Exception:
             logger.exception("❌ فشل قراءة المجموعة من PostgreSQL: %s", filename)
             return None
