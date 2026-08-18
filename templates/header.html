@@ -83,19 +83,51 @@
   function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
   async function refreshNotifications(){if(window.__USER_AUTHENTICATED__!==true)return;try{const r=await fetch('/api/notifications',{credentials:'same-origin'});if(!r.ok)return;const d=await r.json();const b=document.getElementById('notificationBell'),c=document.getElementById('notificationCount');if(!b)return;b.style.display='inline-flex';const n=Number(d.unread||0);c.textContent=n>99?'99+':String(n);c.style.display=n?'block':'none';}catch(e){}}
   async function refreshMessageCount(){
-    if(window.__USER_AUTHENTICATED__!==true)return;
-    try{
-      const r=await fetch('/api/messages',{credentials:'same-origin',cache:'no-store'});
-      if(!r.ok)return;
-      const d=await r.json();
-      if(!d.success)return;
-      const n=(d.threads||[]).reduce((sum,t)=>sum+Number(t.unread||0),0);
-      const b=document.getElementById('messageCount');
-      if(!b)return;
-      b.textContent=n>99?'99+':String(n);
-      b.style.display=n?'inline-block':'none';
-    }catch(e){}
-  }
+    if(window.__USER_AUTHENTICATED__ !== true) return;
+
+    try {
+        const r = await fetch('/api/messages', {
+            credentials: 'same-origin',
+            cache: 'no-store'
+        });
+
+        // انتهت الجلسة أو لم يعد المستخدم مسجلاً
+        if (r.status === 401) {
+            window.__USER_AUTHENTICATED__ = false;
+
+            const b = document.getElementById('messageCount');
+            if (b) {
+                b.textContent = '0';
+                b.style.display = 'none';
+            }
+
+            return;
+        }
+
+        // أي خطأ HTTP آخر
+        if (!r.ok) return;
+
+        const d = await r.json();
+
+        if (!d.success) return;
+
+        const n = (d.threads || []).reduce(
+            (sum, t) => sum + Number(t.unread || 0),
+            0
+        );
+
+        const b = document.getElementById('messageCount');
+
+        if (!b) return;
+
+        b.textContent = n > 99 ? '99+' : String(n);
+        b.style.display = n ? 'inline-block' : 'none';
+
+    } catch (e) {
+        // لا نعرض أخطاء الشبكة للمستخدم
+        console.debug('Message count refresh failed:', e);
+    }
+}
   function icon(kind){return ({message:'💬',application:'📄',interview:'🗓️',payment:'💳',wallet:'💰',security:'🛡️'})[kind]||'🔔'}
   window.openNotifications=async function(){try{const r=await fetch('/api/notifications',{credentials:'same-origin'});const d=await r.json();if(!d.success)return;const items=d.items||[];const old=document.getElementById('notificationsPanel');if(old)old.remove();const box=document.createElement('div');box.id='notificationsPanel';box.className='modern-notifications-panel';box.innerHTML='<div class="notif-head"><div><strong>الإشعارات</strong><small>آخر التحديثات المهمة</small></div><button class="notif-close" type="button">✕</button></div>'+ (items.length?items.map(x=>`<button class="notif-item ${x.read?'read':''}" data-id="${esc(x.id)}" data-link="${esc(x.link||'')}" type="button"><span class="notif-icon">${icon(x.kind)}</span><span class="notif-copy"><b>${esc(x.title||'')}</b><small>${esc(x.message||'')}</small><em>${esc((x.createdAt||'').replace('T',' ').slice(0,16))}</em></span>${x.read?'':'<i class="notif-dot"></i>'}</button>`).join(''):'<div class="notif-empty">لا توجد إشعارات جديدة</div>');document.body.appendChild(box);box.querySelector('.notif-close').onclick=()=>box.remove();box.querySelectorAll('.notif-item').forEach(item=>item.onclick=async()=>{const id=item.dataset.id,link=item.dataset.link;await fetch('/api/notifications',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});if(link)window.location.href=link;else{item.classList.add('read');refreshNotifications();}});}catch(e){}};
   document.addEventListener('DOMContentLoaded',function(){refreshNotifications();refreshMessageCount();setInterval(refreshMessageCount,5000);});
