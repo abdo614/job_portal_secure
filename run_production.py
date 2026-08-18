@@ -11,11 +11,10 @@ from news_auto import register_news_automation
 
 # تشغيل مجمّع الأخبار التلقائي مرة واحدة لكل عملية Waitress.
 # الإعدادات الافتراضية: تشغيل النشر التلقائي كل 30 دقيقة.
-# يمكن إيقافه مؤقتاً عبر NEWS_AUTO_PUBLISH=0.
+# يمكن إيقافه عبر NEWS_AUTO_PUBLISH=0.
 news_automation_state = register_news_automation(app, secure_storage)
 
 if __name__ == '__main__':
-    # Production configuration
     host = os.environ.get('HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', 61411))
     threads = int(os.environ.get('THREADS', 4))
@@ -26,7 +25,6 @@ if __name__ == '__main__':
     print(f"Automatic news interval: {news_automation_state.get('intervalMinutes')} minutes")
     print("Press Ctrl+C to stop")
 
-    # Start Waitress WSGI server
     serve(
         app,
         host=host,
